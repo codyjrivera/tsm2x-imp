@@ -1,0 +1,27 @@
+Usage - As in the project description
+
+FLOP calculation = m * n * k - so 32 * 32 * 32 = 32768 FLOP
+
+
+Multiplying matrix A[32, 32] by matrix B[32, 32]
+
+CUBLAS Test succeeded: 0.155623 GFLOPs
+Naive test succeeded: 0.00820053 GFLOPs
+Shared test succeeded: 0.00519191 GFLOPs
+Optimal test succeeded: 0.00513566 GFLOPs
+
+
+Multiplying matrix A[1024, 1024] by matrix B[1024, 1024]
+
+CUBLAS Test succeeded: 565.747 GFLOPs
+Naive test succeeded: 69.9313 GFLOPs
+Shared test succeeded: 100.505 GFLOPs
+Optimal test succeeded: 95.2764 GFLOPs
+
+
+Multiplying matrix A[2048, 2048] by matrix B[2048, 2048]
+
+CUBLAS Test succeeded: 670.318 GFLOPs
+Naive test succeeded: 61.821 GFLOPs
+Shared test succeeded: 82.7894 GFLOPs
+Optimal test succeeded: 123.923 GFLOPs
