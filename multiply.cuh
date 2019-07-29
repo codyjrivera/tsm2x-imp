@@ -31,7 +31,8 @@ inline void cublasAssert(cublasStatus_t code, const char *file, int line, bool a
 
 
 // Functions
-bool runKernels(const float* A, const float* B, float* C,
+template<typename FloatType>
+bool runKernels(const FloatType* A, const FloatType* B, FloatType* C,
                 const unsigned int m, const unsigned int n,
                 const unsigned int k);
 
@@ -53,19 +54,19 @@ bool runKernels(const float* A, const float* B, float* C,
   Implementations - naive O(n^3) multiplication
  */
 
-__global__ void naiveGEMMKernel(const float* A, const float* B, float* C,
-                                const unsigned int m, const unsigned int n, 
-                                const unsigned int k);
+// __global__ void naiveGEMMKernel(const float* A, const float* B, float* C,
+//                                 const unsigned int m, const unsigned int n, 
+//                                 const unsigned int k);
 
-__global__ void sharedGEMMKernel(const float* A, const float* B, float* C,
-                                 const unsigned int m, const unsigned int n, 
-                                 const unsigned int k);
+// __global__ void sharedGEMMKernel(const float* A, const float* B, float* C,
+//                                  const unsigned int m, const unsigned int n, 
+//                                  const unsigned int k);
 
-__global__ void optGEMMKernel(const float* A, const float* B, float* C,
-                              const unsigned int m, const unsigned int n, 
-                              const unsigned int k);
+// __global__ void optGEMMKernel(const float* A, const float* B, float* C,
+//                               const unsigned int m, const unsigned int n, 
+//                               const unsigned int k);
 
 
-// Implementation macros
-#define TILE_WIDTH 16
-#define TTILE_WIDTH 8
+// // Implementation macros
+// #define TILE_WIDTH 16
+// #define TTILE_WIDTH 8

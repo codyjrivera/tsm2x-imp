@@ -1,27 +1,50 @@
-Usage - As in the project description
 
-FLOP calculation = m * n * k - so 32 * 32 * 32 = 32768 FLOP
+TSM2 Implementation for nVidia Volta GPU Architecture
+=====================================================
 
+by Cody Rivera, [insert other collabs here]
 
-Multiplying matrix A[32, 32] by matrix B[32, 32]
-
-CUBLAS Test succeeded: 0.155623 GFLOPs
-Naive test succeeded: 0.00820053 GFLOPs
-Shared test succeeded: 0.00519191 GFLOPs
-Optimal test succeeded: 0.00513566 GFLOPs
-
-
-Multiplying matrix A[1024, 1024] by matrix B[1024, 1024]
-
-CUBLAS Test succeeded: 565.747 GFLOPs
-Naive test succeeded: 69.9313 GFLOPs
-Shared test succeeded: 100.505 GFLOPs
-Optimal test succeeded: 95.2764 GFLOPs
+This repository contains an implementation of TSM2 as described by
+Chen et al. [1]. TSM2 is a parallel matrix-matrix multiplication algorithm 
+optimized for tall and skinny matrices: matrices of size (n * n) and (n * k)
+where k is much smaller than n. According to experimental data, this algorithm
+is faster and utilizes more memory bandwidth than CUBLAS when multiplying tall
+and skinny matrices.
 
 
-Multiplying matrix A[2048, 2048] by matrix B[2048, 2048]
+This implementation is designed for Unix platforms, and can be built using
+'make'. The usage of this program is: 
+'./multiply [-d] a.mtx b.mtx c.mtx',
+where a.mtx and b.mtx are input matrices and c.mtx is an output matrix.
+Note that the optional parameter [-d] indicates that the matrices are 
+double precision.
 
-CUBLAS Test succeeded: 670.318 GFLOPs
-Naive test succeeded: 61.821 GFLOPs
-Shared test succeeded: 82.7894 GFLOPs
-Optimal test succeeded: 123.923 GFLOPs
+The format of the matrices is binary, with a structure:
+
+template <typename FloatType>
+struct matrixFormat
+{
+    uint32 rows, cols;
+    FloatType values[rows * cols];
+};
+
+The values are stored in column-major format.
+All multibyte values are little-endian.
+
+The setting of parameters t1, t2, and t3 [1] will take place at compile time.
+
+** TODO -- Add CSV export option **
+
+
+Sources:
+--------
+
+[1] Jieyang Chen, Nan Xiong, Xin Liang, Dingwen Tao ∗ , Sihuan Li, Kaiming
+Ouyang, Kai Zhao, Nathan DeBardeleben ∗∗ , Qiang Guan ∗∗∗ , Zizhong Chen.
+2019. TSM2: Optimizing Tall-and-Skinny Matrix-Matrix Multiplication on
+GPUs. In 2019 International Conference on Supercomputing (ICS ’19), June
+26–28, 2019, Phoenix, AZ, USA. ACM, New York, NY, USA, 11 pages. https:
+//doi.org/10.1145/3330345.3330355
+
+
+

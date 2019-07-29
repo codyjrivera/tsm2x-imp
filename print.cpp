@@ -8,31 +8,12 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 
 
-int main(int argc, char** argv)
+template<typename FloatType>
+void printMatrix(FloatType* A, unsigned int m, unsigned int n)
 {
-    if (argc != 2)
-    {
-        std::cerr << "Usage: " << argv[0] 
-                  << " matrixFile (litte endian)" << std::endl;
-        return 1;
-    }
-    std::ifstream binFile(argv[1], std::ios::binary);
-    if (!binFile)
-    {
-        std::cerr << "Cannot open " << argv[1]
-                  << " for reading" << std::endl;
-        return 1;
-    }
-    unsigned int m, n;
-    binFile.read((char*)&m, sizeof(unsigned int));
-    binFile.read((char*)&n, sizeof(unsigned int));
-    
-    float* A = new float[m * n];
-    binFile.read((char*)A, m * n * sizeof(float));
-    binFile.close();
-    
     std::cout << std::setw(COL_WIDTH) << m << " "
               << std::setw(COL_WIDTH) << n << std::endl << std::endl;
     
@@ -44,7 +25,55 @@ int main(int argc, char** argv)
         }
         std::cout << std::endl;
     }
+}
+
+
+int main(int argc, char** argv)
+{
+    int fileArg = 0;
+    int FloatTypeSize = sizeof(float);
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp("-d", argv[i]) != 0)
+        {
+            FloatTypeSize = sizeof(double);
+        }
+        else
+        {
+            fileArg = i;
+        }
+    }
+    if (fileArg == 0)
+    {
+        std::cerr << "Usage: " << argv[0] 
+                  << " [-d] matrixFile (litte endian)" << std::endl;
+        return 1;
+    }
+    std::ifstream binFile(argv[fileArg], std::ios::binary);
+    if (!binFile)
+    {
+        std::cerr << "Cannot open " << argv[fileArg]
+                  << " for reading" << std::endl;
+        return 1;
+    }
+    unsigned int m, n;
+    binFile.read((char*)&m, sizeof(unsigned int));
+    binFile.read((char*)&n, sizeof(unsigned int));
     
+    // Raw array
+    char* A = new char[m * n * FloatTypeSize];
+    binFile.read((char*)A, m * n * FloatTypeSize);
+    binFile.close();
+
+    if (FloatTypeSize == sizeof(float))
+    {
+        printMatrix<float>((float*) A, m, n);
+    }
+    else
+    {
+        printMatrix<double>((double*) A, m, n);
+    }
+
     delete[] A;
 }
 
