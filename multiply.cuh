@@ -38,35 +38,27 @@ bool runKernels(const FloatType* A, const FloatType* B, FloatType* C,
 
 
 /* 
-   Matrix Multiplication Interface
+   TSM Matrix Multiplication Interface
 
    Inputs - passed const:
-   m, n, k - Unsigned integer dimensions
-   A - Column major matrix m * k with leading dimension k
-   B - Column major matrix k * n with leading dimension n
+   n, k - Unsigned integer dimensions
+   A - Column major matrix n * n with leading dimension n
+   B - Column major matrix n * k with leading dimension n
    
    Outputs:
-   C - Column major matrix m * n with leading dimension n
+   C - Column major matrix n * k with leading dimension n
  */
 
 
-/*
-  Implementations - naive O(n^3) multiplication
- */
 
-// __global__ void naiveGEMMKernel(const float* A, const float* B, float* C,
-//                                 const unsigned int m, const unsigned int n, 
-//                                 const unsigned int k);
+template <int t1, int t2, int t3>
+__global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
+                                const unsigned int m, const unsigned int n, 
+                                const unsigned int k);
 
-// __global__ void sharedGEMMKernel(const float* A, const float* B, float* C,
-//                                  const unsigned int m, const unsigned int n, 
-//                                  const unsigned int k);
-
-// __global__ void optGEMMKernel(const float* A, const float* B, float* C,
-//                               const unsigned int m, const unsigned int n, 
-//                               const unsigned int k);
+template <int t1, int t2, int t3>
+__global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
+                                 const unsigned int m, const unsigned int n, 
+                                 const unsigned int k);
 
 
-// // Implementation macros
-// #define TILE_WIDTH 16
-// #define TTILE_WIDTH 8
