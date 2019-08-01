@@ -4,7 +4,7 @@
 
 
 # Input Names
-CUDA_FILES = kernels.cu multiply.cu
+CUDA_FILES = multiply.cu
 CPP_FILES = main.cpp
 # ------------------------------------------------------------------------------
 

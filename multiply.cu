@@ -9,12 +9,22 @@
 
 #include "multiply.cuh"
 
+#include "kernels.cuh"
+
 #define EPS 10e-2
 #define MAX_TILES 255
 
 /*
   Helper functions
  */
+
+#define FLOAT_T1 128
+#define FLOAT_T2 4
+#define FLOAT_T3 4
+
+#define DOUBLE_T1 128
+#define DOUBLE_T2 4
+#define DOUBLE_T3 4
 
 
 template<typename FloatType>
@@ -140,14 +150,55 @@ bool runKernels(const float* A, const float* B, float* C,
     cublasErrchk(cublasDestroy(handle));
     
 
-    /*
     // Runs kernels
     // Failure flag
     bool status;
     // Failure indices
     unsigned int iFail, jFail;
-    */
 
+    if (m == k)
+    {
+        // If a TSM
+
+        // Clear result matrix
+        cudaErrchk(cudaMemset(devC, 0, m * n * sizeof(float)));
+        cudaErrchk(cudaEventRecord(startTotal));
+    
+        // Cuda Memory Copy
+        cudaErrchk(cudaMemcpy(devA, A, m * k * sizeof(float), cudaMemcpyHostToDevice));
+        cudaErrchk(cudaMemcpy(devB, B, k * n * sizeof(float), cudaMemcpyHostToDevice));
+
+        int blocks = (k / FLOAT_T1) + 1;
+        blocks = (blocks > 65536) ? 65536 : blocks;
+
+        cudaErrchk(cudaEventRecord(start));
+        floatTSM2Kernel<FLOAT_T1, FLOAT_T2, FLOAT_T3><<<blocks, FLOAT_T1>>>(devA, devB, devC, k, n);
+        cudaErrchk(cudaGetLastError());
+        cudaErrchk(cudaEventRecord(end));
+    
+        // Copies result back
+        cudaErrchk(cudaMemcpy(candC, devC, m * n * sizeof(float), cudaMemcpyDeviceToHost));
+
+        cudaErrchk(cudaEventRecord(endTotal));
+        cudaErrchk(cudaDeviceSynchronize());
+        cudaErrchk(cudaEventElapsedTime(&time, start, end));
+        cudaErrchk(cudaEventElapsedTime(&timeTotal, startTotal, endTotal));
+        status = matrixCompare<float>(C, candC, m, n, iFail, jFail);
+        if (status)
+        {
+            reportTestSuccess<float>("TSM2 Kernel Test", 
+                                     getGFLOPs<float>(time, m, n, k), 
+                                     getGFLOPs<float>(timeTotal, m, n, k)); 
+        }
+        else
+        {
+            reportTestFailure<float>("TSM2 Kernel Test", C, candC, m, iFail, jFail);
+        }
+        
+        
+    }
+
+    
     cudaErrchk(cudaEventDestroy(start));
     cudaErrchk(cudaEventDestroy(end));
     cudaErrchk(cudaEventDestroy(startTotal));
@@ -229,13 +280,57 @@ bool runKernels(const double* A, const double* B, double* C,
     cublasErrchk(cublasDestroy(handle));
     
 
-    /*
-    // Runs kernels
+    
+    
+    // Runs kernel
     // Failure flag
     bool status;
     // Failure indices
     unsigned int iFail, jFail;
-    */
+
+    if (m == k)
+    {
+        // If a TSM
+
+        // Clear result matrix
+        cudaErrchk(cudaMemset(devC, 0, m * n * sizeof(double)));
+        cudaErrchk(cudaEventRecord(startTotal));
+    
+        // Cuda Memory Copy
+        cudaErrchk(cudaMemcpy(devA, A, m * k * sizeof(double), cudaMemcpyHostToDevice));
+        cudaErrchk(cudaMemcpy(devB, B, k * n * sizeof(double), cudaMemcpyHostToDevice));
+
+        int blocks = (k / DOUBLE_T1) + 1;
+        blocks = (blocks > 65536) ? 65536 : blocks;
+
+        cudaErrchk(cudaEventRecord(start));
+        doubleTSM2Kernel<DOUBLE_T1, DOUBLE_T2, DOUBLE_T3><<<blocks, DOUBLE_T1>>>(devA, devB, devC, k, n);
+        cudaErrchk(cudaGetLastError());
+        cudaErrchk(cudaEventRecord(end));
+    
+        // Copies result back
+        cudaErrchk(cudaMemcpy(candC, devC, m * n * sizeof(double), cudaMemcpyDeviceToHost));
+
+        cudaErrchk(cudaEventRecord(endTotal));
+        cudaErrchk(cudaDeviceSynchronize());
+        cudaErrchk(cudaEventElapsedTime(&time, start, end));
+        cudaErrchk(cudaEventElapsedTime(&timeTotal, startTotal, endTotal));
+        status = matrixCompare<double>(C, candC, m, n, iFail, jFail);
+        if (status)
+        {
+            reportTestSuccess<double>("TSM2 Kernel Test", 
+                                     getGFLOPs<double>(time, m, n, k), 
+                                     getGFLOPs<double>(timeTotal, m, n, k)); 
+        }
+        else
+        {
+            reportTestFailure<double>("TSM2 Kernel Test", C, candC, m, iFail, jFail);
+        }
+        
+        
+    }
+
+
 
     cudaErrchk(cudaEventDestroy(start));
     cudaErrchk(cudaEventDestroy(end));

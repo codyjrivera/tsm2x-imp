@@ -1,3 +1,6 @@
+#ifndef _MULTIPLY_CUH
+#define _MULTIPLY_CUH
+
 /*
   multiply.cuh -- Matrix multiplication interface and useful
   macros - by Cody Rivera
@@ -50,6 +53,7 @@ bool runKernels(const FloatType* A, const FloatType* B, FloatType* C,
  */
 
 
+/*
 
 template <int t1, int t2, int t3>
 __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
@@ -59,4 +63,5 @@ template <int t1, int t2, int t3>
 __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                                  const unsigned int n, const unsigned int k);
 
-
+*/
+#endif
