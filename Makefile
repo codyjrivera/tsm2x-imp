@@ -4,6 +4,7 @@
 
 
 # Input Names
+CUDA_HEADERS = multiply.cuh kernels.cuh
 CUDA_FILES = multiply.cu
 CPP_FILES = main.cpp
 # ------------------------------------------------------------------------------
@@ -73,7 +74,7 @@ print: print.cpp.o
 	$(GPP) $(FLAGS) -c -o $@ $(INCLUDE) $< 
 
 # Compile CUDA Source Files
-%.cu.o: %.cu
+%.cu.o: %.cu $(CUDA_HEADERS)
 	$(NVCC) $(NVCC_FLAGS) $(NVCC_GENCODES) -c -o $@ $(NVCC_INCLUDE) $<
 
 # Make linked device code

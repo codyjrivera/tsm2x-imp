@@ -34,7 +34,7 @@ int main(int argc, char** argv)
     int FloatTypeSize = sizeof(float);
     for (int i = 1; i < argc; i++)
     {
-        if (strcmp("-d", argv[i]) != 0)
+        if (strcmp("-d", argv[i]) == 0)
         {
             FloatTypeSize = sizeof(double);
         }

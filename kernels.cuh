@@ -73,7 +73,7 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                 }
                 
                 // Loop over A's columns 
-                for (int l = j; l < j + t1; l += t3)
+                for (int l = j; l < j + t1 && l < n; l += t3)
                 {
                     // Loads next A
                     if (thread < n)
@@ -83,18 +83,15 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                             nextA[i] = A[thread + ((l + t3 + i) * n)];
                         }
                     }
-                    
+                                        
                     // Floating Point Operations (lines 32-34)
-                    // Note that in the paper, there is iteration of size t2 and t3
-                    // Since t1 is not necessarily equal to t2 and t3, the naive 
-                    // solution is to iterate, but I intend to use block-level
-                    // parallelism over t3 to speed up this section.
+                    // Each thread does t2 * t3 mults
                     
-                    for (int ftid = tid; ftid < t3; ftid += t1)
+                    for (int i = 0; i < t2; ++i)
                     {
-                        for (int i = 0; i < t2; ++i)
+                        for (int k = 0; k < t3; ++k)
                         {
-                            currC[i] += currA[ftid] * currB[l + ftid + (i * t1)];
+                            currC[i] += currA[k] * currB[(l - j) + k + (i * t1)]; 
                         }
                     }
                     
@@ -189,7 +186,7 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                 }
                 
                 // Loop over A's columns 
-                for (int l = j; l < j + t1; l += t3)
+                for (int l = j; l < j + t1 && l < n; l += t3)
                 {
                     // Loads next A
                     if (thread < n)
@@ -201,18 +198,15 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                     }
                     
                     // Floating Point Operations (lines 32-34)
-                    // Note that in the paper, there is iteration of size t2 and t3
-                    // Since t1 is not necessarily equal to t2 and t3, the naive 
-                    // solution is to iterate, but I intend to use block-level
-                    // parallelism over t3 to speed up this section.
+                    // Each thread does t2 * t3 mults
                     
-                    for (int ftid = tid; ftid < t3; ftid += t1)
+                    for (int i = 0; i < t2; ++i)
                     {
-                        for (int i = 0; i < t2; ++i)
+                        for (int k = 0; k < t3; ++k)
                         {
-                            currC[i] += currA[ftid] * currB[l + ftid + (i * t1)];
+                            currC[i] += currA[k] * currB[(l - j) + k + (i * t1)];
                         }
-                    }
+                    }     
                     
                     // Stores next A in curr A
                     for (int i = 0; i < t3; ++i)
