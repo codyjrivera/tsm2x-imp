@@ -61,13 +61,17 @@ LIBS = -L$(CUDA_LIB_PATH) -lcublas -lcudart
 OBJ_FILES = $(notdir $(addsuffix .o, $(CPP_FILES)))
 
 # Top level rules
-all: multiply print
+all: multiply print gen
 
 multiply: $(OBJ_FILES) $(CUDA_OBJ) $(CUDA_OBJ_FILES)
 	$(GPP) $(FLAGS) -o multiply $(INCLUDE) $^ $(LIBS) 
 
 print: print.cpp.o
 	$(GPP) $(FLAGS) -o print $(INCLUDE) $^ $(LIBS)
+
+gen: gen.cpp.o
+	$(GPP) $(FLAGS) -o gen $(INCLUDE) $^ $(LIBS)
+
 
 # Compile C++ Source Files
 %.cpp.o: %.cpp
@@ -84,6 +88,6 @@ $(CUDA_OBJ): $(CUDA_OBJ_FILES)
 
 # Clean everything including temporary Emacs files
 clean:
-	rm -f multiply *.o *~ *.test.* print
+	rm -f multiply *.o *~ *.test.* print gen
 
 .PHONY: clean
