@@ -41,21 +41,34 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
             // Loads first tile of output registers and A
             if (thread < n)
             {
-                for (int i = 0; (i < t2) && (p + i < k); ++i)
+                #pragma unroll
+                for (int i = 0; i < t2; ++i)
                 {
-                    currC[i] = C[thread + ((p + i) * n)];
+                    if (p + i < k)
+                    {
+                        currC[i] = C[thread + ((p + i) * n)];
+                    }
                 }
-                for (int i = 0; (i < t3) && (i < n); ++i)
+                // Loads currA
+                #pragma unroll
+                for (int i = 0; i < t3; ++i)
                 {
-                    currA[i] = A[thread + (i * n)];
+                    if (i < n)
+                    {
+                        currA[i] = A[thread + (i * n)];
+                    }
                 }
             }
             // Loads tile of B
             if (tid < n)
             {
-                for (int i = 0; (i < t2) && (p + i < k); ++i)
+                #pragma unroll
+                for (int i = 0; i < t2; ++i)
                 {
-                    currB[tid + (i * t1)] = B[tid + ((p + i) * n)];
+                    if (p + i < k)
+                    {
+                        currB[tid + (i * t1)] = B[tid + ((p + i) * n)];
+                    }
                 }
             }
 
@@ -66,9 +79,13 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                 // Loads next tile of B
                 if (j + t1 + tid < n)
                 {
-                    for (int i = 0; (i < t2 && (p + i < k)); ++i)
+                    #pragma unroll
+                    for (int i = 0; i < t2; ++i)
                     {
-                        nextB[i] = B[(j + t1 + tid) + ((p + i) * n)]; 
+                        if (p + i < k)
+                        {
+                            nextB[i] = B[(j + t1 + tid) + ((p + i) * n)]; 
+                        }
                     }
                 }
                 
@@ -76,9 +93,10 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                 for (int l = j; l < j + t1 && l < n; l += t3)
                 {
                     // Loads next A
-                    if (thread < n)
+                    #pragma unroll
+                    for (int i = 0; i < t3; ++i)
                     {
-                        for (int i = 0; (i < t3 && (l + t3 + i < n)); ++i)
+                        if (l + t3 + i < n && thread < n)
                         {
                             nextA[i] = A[thread + ((l + t3 + i) * n)];
                         }
@@ -89,6 +107,7 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                     #pragma unroll
                     for (int i = 0; i < t2; ++i)
                     {
+                        #pragma unroll
                         for (int k = 0; k < t3; ++k)
                         {
                             currC[i] += currA[k] * currB[(l - j) + k + (i * t1)]; 
@@ -114,7 +133,8 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
             // Stores C
             if (thread < n)
             {
-                for (int i = 0; (i < t2 && (p + i < k)); ++i)
+                #pragma unroll
+                for (int i = 0; i < t2 && (p + i < k); ++i)
                 {
                     C[thread + ((p + i) * n)] = currC[i];
                 }
@@ -142,6 +162,7 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
     
     // This implementation can respond to arbitrary input
 
+    
     // We cannot rule out a thread's participation based on
     // whether it corresponds to a row in Matrix A, so we
     // introduce threadBase.
@@ -156,21 +177,34 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
             // Loads first tile of output registers and A
             if (thread < n)
             {
-                for (int i = 0; (i < t2) && (p + i < k); ++i)
+                #pragma unroll
+                for (int i = 0; i < t2; ++i)
                 {
-                    currC[i] = C[thread + ((p + i) * n)];
+                    if (p + i < k)
+                    {
+                        currC[i] = C[thread + ((p + i) * n)];
+                    }
                 }
-                for (int i = 0; (i < t3) && (i < n); ++i)
+                // Loads currA
+                #pragma unroll
+                for (int i = 0; i < t3; ++i)
                 {
-                    currA[i] = A[thread + (i * n)];
+                    if (i < n)
+                    {
+                        currA[i] = A[thread + (i * n)];
+                    }
                 }
             }
             // Loads tile of B
             if (tid < n)
             {
-                for (int i = 0; (i < t2) && (p + i < k); ++i)
+                #pragma unroll
+                for (int i = 0; i < t2; ++i)
                 {
-                    currB[tid + (i * t1)] = B[tid + ((p + i) * n)];
+                    if (p + i < k)
+                    {
+                        currB[tid + (i * t1)] = B[tid + ((p + i) * n)];
+                    }
                 }
             }
 
@@ -181,9 +215,13 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                 // Loads next tile of B
                 if (j + t1 + tid < n)
                 {
-                    for (int i = 0; (i < t2 && (p + i < k)); ++i)
+                    #pragma unroll
+                    for (int i = 0; i < t2; ++i)
                     {
-                        nextB[i] = B[(j + t1 + tid) + ((p + i) * n)]; 
+                        if (p + i < k)
+                        {
+                            nextB[i] = B[(j + t1 + tid) + ((p + i) * n)]; 
+                        }
                     }
                 }
                 
@@ -191,26 +229,29 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                 for (int l = j; l < j + t1 && l < n; l += t3)
                 {
                     // Loads next A
-                    if (thread < n)
+                    #pragma unroll
+                    for (int i = 0; i < t3; ++i)
                     {
-                        for (int i = 0; (i < t3 && (l + t3 + i < n)); ++i)
+                        if (l + t3 + i < n && thread < n)
                         {
                             nextA[i] = A[thread + ((l + t3 + i) * n)];
                         }
                     }
-                    
+                                        
                     // Floating Point Operations (lines 32-34)
                     // Each thread does t2 * t3 mults
-                    
+                    #pragma unroll
                     for (int i = 0; i < t2; ++i)
                     {
+                        #pragma unroll
                         for (int k = 0; k < t3; ++k)
                         {
-                            currC[i] += currA[k] * currB[(l - j) + k + (i * t1)];
+                            currC[i] += currA[k] * currB[(l - j) + k + (i * t1)]; 
                         }
-                    }     
+                    }
                     
                     // Stores next A in curr A
+                    #pragma unroll
                     for (int i = 0; i < t3; ++i)
                     {
                         currA[i] = nextA[i];
@@ -219,6 +260,7 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                 __syncthreads();
 
                 // Loads currB from each thread's nextB
+                #pragma unroll
                 for (int i = 0; i < t2; ++i)
                 {
                     currB[tid + (i * t1)] = nextB[i];
@@ -227,7 +269,8 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
             // Stores C
             if (thread < n)
             {
-                for (int i = 0; (i < t2 && (p + i < k)); ++i)
+                #pragma unroll
+                for (int i = 0; i < t2 && (p + i < k); ++i)
                 {
                     C[thread + ((p + i) * n)] = currC[i];
                 }
