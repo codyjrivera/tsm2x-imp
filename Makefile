@@ -24,7 +24,7 @@ else
 NVCC_FLAGS := -m64
 endif
 NVCC_FLAGS += -g -dc -Wno-deprecated-gpu-targets --std=c++11 \
-              --expt-relaxed-constexpr
+              --expt-relaxed-constexpr 
 NVCC_INCLUDE = 
 NVCC_LIBS = 
 NVCC_GENCODES = -arch=sm_50 \

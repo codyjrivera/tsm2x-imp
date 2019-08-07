@@ -86,7 +86,7 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                                         
                     // Floating Point Operations (lines 32-34)
                     // Each thread does t2 * t3 mults
-                    
+                    #pragma unroll
                     for (int i = 0; i < t2; ++i)
                     {
                         for (int k = 0; k < t3; ++k)
@@ -96,6 +96,7 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                     }
                     
                     // Stores next A in curr A
+                    #pragma unroll
                     for (int i = 0; i < t3; ++i)
                     {
                         currA[i] = nextA[i];
@@ -104,6 +105,7 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                 __syncthreads();
 
                 // Loads currB from each thread's nextB
+                #pragma unroll
                 for (int i = 0; i < t2; ++i)
                 {
                     currB[tid + (i * t1)] = nextB[i];

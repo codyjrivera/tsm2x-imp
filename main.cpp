@@ -37,9 +37,9 @@ bool runMatmul(std::istream& fileA, std::istream& fileB, std::ostream& outFile)
     }
     
     // Mallocs Matrices on CPU
-    A = (FloatType*) malloc(m * k * sizeof(FloatType));
-    B = (FloatType*) malloc(k * n * sizeof(FloatType));
-    C = (FloatType*) malloc(m * n * sizeof(FloatType));
+    A = (FloatType*) malloc((size_t)m * k * sizeof(FloatType));
+    B = (FloatType*) malloc((size_t)k * n * sizeof(FloatType));
+    C = (FloatType*) malloc((size_t)m * n * sizeof(FloatType));
 
     if (A == NULL || B == NULL || C == NULL)
     {
@@ -48,8 +48,8 @@ bool runMatmul(std::istream& fileA, std::istream& fileB, std::ostream& outFile)
     }
 
     // Loads Data to Matrix A and B
-    fileA.read((char*)A, m * k * sizeof(FloatType));
-    fileB.read((char*)B, k * n * sizeof(FloatType));
+    fileA.read((char*)A, (size_t) m * k * sizeof(FloatType));
+    fileB.read((char*)B, (size_t) k * n * sizeof(FloatType));
     /*
     for (unsigned int j = 0; j < k; j++)
     {
@@ -82,7 +82,7 @@ bool runMatmul(std::istream& fileA, std::istream& fileB, std::ostream& outFile)
     outFile.write((const char*)&m, sizeof(unsigned int));
     outFile.write((const char*)&n, sizeof(unsigned int));
     
-    outFile.write((const char*)C, m * n * sizeof(FloatType));
+    outFile.write((const char*)C, (size_t) m * n * sizeof(FloatType));
     return true;
 }
 

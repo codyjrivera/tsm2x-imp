@@ -57,6 +57,7 @@ int main(int argc, char** argv)
             fileArg = i;
         }
     }
+
     if (m == 0 || n == 0 || fileArg == 0)
     {
         std::cerr << "Usage: " << argv[0] 
@@ -75,7 +76,7 @@ int main(int argc, char** argv)
     binFile.write((char*)&n, sizeof(unsigned int));
     
     // Raw array
-    char* A = new char[m * n * FloatTypeSize];
+    char* A = new char[(size_t) m * (size_t) n * (size_t)FloatTypeSize];
     
     if (FloatTypeSize == sizeof(float))
     {
@@ -86,7 +87,7 @@ int main(int argc, char** argv)
         buildMatrix<double>((double*) A, m, n);
     }
 
-    binFile.write((char*)A, m * n * FloatTypeSize);
+    binFile.write((char*)A, (size_t) m * (size_t) n * (size_t)FloatTypeSize);
     binFile.close();
 
     delete[] A;

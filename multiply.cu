@@ -3,6 +3,7 @@
 */
 
 #include <cstdio>
+#include <cmath>
 #include <cstdlib>
 #include "cuda_runtime.h"
 #include "cublas_v2.h"
@@ -11,7 +12,8 @@
 
 #include "kernels.cuh"
 
-#define EPS 10e-2
+
+#define EPS 10e-3
 #define MAX_TILES 255
 
 /*
@@ -25,6 +27,23 @@
 #define DOUBLE_T1 128
 #define DOUBLE_T2 4
 #define DOUBLE_T3 4
+
+
+// Based on https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+bool approxEqual(double A, double B,
+                 double maxRelDiff = EPS)
+{
+    // Calculate the difference.
+    double diff = fabs(A - B);
+    A = fabs(A);
+    B = fabs(B);
+    // Find the largest
+    double largest = (B > A) ? B : A;
+
+    if (diff <= largest * maxRelDiff)
+        return true;
+    return false;
+}
 
 
 template<typename FloatType>
@@ -41,7 +60,7 @@ bool matrixCompare(const FloatType* A, const FloatType* B,
         {
             aVal = A[i + (j * m)];
             bVal = B[i + (j * m)];
-            if (fabs(aVal - bVal) > EPS)
+            if (!approxEqual(aVal, bVal, EPS))
             {
                 iFail = i;
                 jFail = j;
@@ -132,10 +151,10 @@ bool runKernels(const float* A, const float* B, float* C,
     cudaErrchk(cudaMemcpy(devB, B, k * n * sizeof(float), cudaMemcpyHostToDevice));
 
     cudaErrchk(cudaEventRecord(start));
-    cublasErrchk(cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N,
-                             m, n, k,
-                             &one, devA, m, devB, k,
-                             &zero, devC, m));
+    cublasErrchk(cublasGemmEx(handle, CUBLAS_OP_N, CUBLAS_OP_N,
+                              m, n, k,
+                              &one, devA, CUDA_R_32F, m, devB, CUDA_R_32F, k,
+                              &zero, devC, CUDA_R_32F, m, CUDA_R_32F, CUBLAS_GEMM_DEFAULT));
     cudaErrchk(cudaEventRecord(end));
     
     // Copies result back
@@ -262,10 +281,10 @@ bool runKernels(const double* A, const double* B, double* C,
     cudaErrchk(cudaMemcpy(devB, B, k * n * sizeof(double), cudaMemcpyHostToDevice));
 
     cudaErrchk(cudaEventRecord(start));
-    cublasErrchk(cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N,
-                             m, n, k,
-                             &one, devA, m, devB, k,
-                             &zero, devC, m));
+    cublasErrchk(cublasGemmEx(handle, CUBLAS_OP_N, CUBLAS_OP_N,
+                              m, n, k,
+                              &one, devA, CUDA_R_64F, m, devB, CUDA_R_64F, k,
+                              &zero, devC, CUDA_R_64F, m, CUDA_R_64F, CUBLAS_GEMM_DEFAULT));
     cudaErrchk(cudaEventRecord(end));
     
     // Copies result back
