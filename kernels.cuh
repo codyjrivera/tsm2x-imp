@@ -134,9 +134,12 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
             if (thread < n)
             {
                 #pragma unroll
-                for (int i = 0; i < t2 && (p + i < k); ++i)
+                for (int i = 0; i < t2; ++i)
                 {
-                    C[thread + ((p + i) * n)] = currC[i];
+                    if (p + i < k)
+                    {
+                        C[thread + ((p + i) * n)] = currC[i];
+                    }
                 }
             }
         }
@@ -270,9 +273,12 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
             if (thread < n)
             {
                 #pragma unroll
-                for (int i = 0; i < t2 && (p + i < k); ++i)
+                for (int i = 0; i < t2; ++i)
                 {
-                    C[thread + ((p + i) * n)] = currC[i];
+                    if (p + i < k)
+                    {
+                        C[thread + ((p + i) * n)] = currC[i];
+                    }
                 }
             }
         }

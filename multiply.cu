@@ -21,12 +21,12 @@
  */
 
 #define FLOAT_T1 128
-#define FLOAT_T2 4
-#define FLOAT_T3 4
+#define FLOAT_T2 8
+#define FLOAT_T3 32
 
 #define DOUBLE_T1 128
-#define DOUBLE_T2 4
-#define DOUBLE_T3 4
+#define DOUBLE_T2 8
+#define DOUBLE_T3 32
 
 
 // Based on https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
