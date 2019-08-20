@@ -89,8 +89,9 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                     }
                 }
                 
+                const int t3mod = t1 % t3;
                 // Loop over A's columns 
-                for (int l = j; l < j + t1 && l < n; l += t3)
+                for (int l = j; l < j + (t1 - t3mod) && l < n; l += t3)
                 {
                     // Loads next A
                     #pragma unroll
@@ -121,6 +122,20 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                         currA[i] = nextA[i];
                     }
                 }
+                // Accommodates t3 that do not divide t1.
+                #pragma unroll
+                for (int i = 0; i < t2; ++i)
+                {
+                    #pragma unroll
+                    for (int k = 0; k < t3mod; ++k)
+                    {
+                        if (j + t1 - t3mod + k < n)
+                        {
+                            currC[i] += currA[k] * currB[(t1 - t3mod + k) + (i * t1)];
+                        }
+                    }
+                } 
+
                 __syncthreads();
 
                 // Loads currB from each thread's nextB
@@ -128,6 +143,19 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                 for (int i = 0; i < t2; ++i)
                 {
                     currB[tid + (i * t1)] = nextB[i];
+                }
+                
+                // Loads next currA
+                if (t3mod != 0)
+                {
+                    #pragma unroll
+                    for (int i = 0; i < t3; ++i)
+                    {
+                        if (j + t1 + i < n && thread < n)
+                        {
+                            currA[i] = A[thread + ((j + t1 + i) * n)];
+                        }
+                    }
                 }
             }
             // Stores C
@@ -227,9 +255,10 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                         }
                     }
                 }
-                
+               
+                const int t3mod = t1 % t3;
                 // Loop over A's columns 
-                for (int l = j; l < j + t1 && l < n; l += t3)
+                for (int l = j; l < j + (t1 - t3mod) && l < n; l += t3)
                 {
                     // Loads next A
                     #pragma unroll
@@ -260,6 +289,20 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                         currA[i] = nextA[i];
                     }
                 }
+                // Accommodates t3 that do not divide t1.
+                #pragma unroll
+                for (int i = 0; i < t2; ++i)
+                {
+                    #pragma unroll
+                    for (int k = 0; k < t3mod; ++k)
+                    {
+                        if (j + t1 - t3mod + k < n)
+                        {
+                            currC[i] += currA[k] * currB[(t1 - t3mod + k) + (i * t1)];
+                        }
+                    }
+                } 
+
                 __syncthreads();
 
                 // Loads currB from each thread's nextB
@@ -267,6 +310,19 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                 for (int i = 0; i < t2; ++i)
                 {
                     currB[tid + (i * t1)] = nextB[i];
+                }
+                
+                // Loads next currA
+                if (t3mod != 0)
+                {
+                    #pragma unroll
+                    for (int i = 0; i < t3; ++i)
+                    {
+                        if (j + t1 + i < n && thread < n)
+                        {
+                            currA[i] = A[thread + ((j + t1 + i) * n)];
+                        }
+                    }
                 }
             }
             // Stores C
