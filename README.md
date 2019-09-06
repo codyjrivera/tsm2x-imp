@@ -21,7 +21,7 @@ for the Nvidia V100 GPU.
 
 The implementation also accepts matrices of size (m * n) and (n * k), where m != n.
 
-Please feel free to contact one of us if you have any questions.
+Please feel free to contact us.
 
 
 Instructions:
