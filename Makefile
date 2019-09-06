@@ -4,7 +4,7 @@
 
 
 # Input Names
-CUDA_HEADERS = multiply.cuh kernels.cuh
+CUDA_HEADERS = multiply.cuh kernels.cuh parameters.cuh
 CUDA_FILES = multiply.cu
 CPP_FILES = main.cpp
 # ------------------------------------------------------------------------------
@@ -24,10 +24,10 @@ else
 NVCC_FLAGS := -m64
 endif
 NVCC_FLAGS += -g -Wno-deprecated-gpu-targets --std=c++11 \
-              --expt-relaxed-constexpr
+              --expt-relaxed-constexpr 
 NVCC_INCLUDE = 
 NVCC_LIBS = 
-NVCC_GENCODES = -arch=sm_70 \
+NVCC_GENCODES = -arch=sm_50 \
 		-gencode arch=compute_50,code=sm_50 \
 		-gencode arch=compute_52,code=sm_52 \
 		-gencode arch=compute_60,code=sm_60 \

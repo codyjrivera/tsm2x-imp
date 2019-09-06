@@ -20,13 +20,9 @@
   Helper functions
  */
 
-#define FLOAT_T1 128
-#define FLOAT_T2 8
-#define FLOAT_T3 32
 
-#define DOUBLE_T1 128
-#define DOUBLE_T2 8
-#define DOUBLE_T3 32
+#include "parameters.cuh"
+
 
 
 // Based on https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
@@ -96,6 +92,122 @@ double getGFLOPs(double time, unsigned int m, unsigned int n, unsigned int k)
     double timeSeconds = time / 1000;
     return instCount / timeSeconds;
 }
+
+
+
+/*
+  floatTSM2 and doubleTSM2 -- Wrappers around the kernels that select
+  the optimal kernel.
+
+  Currently only optimal for Nvidia V100
+
+  Parameter Choice for V100:
+  
+  t1 := 128
+  
+  Single Precision: k ~= t2, t3 := 32
+  Double Precision: k ~= t2, t3 := 16 if n < 10240, and t3 := 12 otherwise
+  
+ */
+
+void floatTSM2(const float* devA, const float* devB, float* devC,
+               const unsigned int n, const unsigned int m,
+               const unsigned int k)
+{
+    int blocks = (k / FLOAT_T1) + 1;
+    blocks = (blocks > 65536) ? 65536 : blocks;
+    if (k <= 2)
+    {
+        floatTSM2Kernel<FLOAT_T1, 2, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+    }
+    else if (k <= 4)
+    {
+        floatTSM2Kernel<FLOAT_T1, 4, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+    }
+    else if (k <= 6)
+    {
+        floatTSM2Kernel<FLOAT_T1, 6, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+    }
+    else if (k <= 8)
+    {
+        floatTSM2Kernel<FLOAT_T1, 8, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+    }
+    else
+    {
+        floatTSM2Kernel<FLOAT_T1, 16, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+    }
+    // Since CUBLAS starts beating TSM2 at 16, there is no need to include another kernel
+}
+
+void doubleTSM2(const double* devA, const double* devB, double* devC,
+               const unsigned int n, const unsigned int m,
+               const unsigned int k)
+{
+    int blocks = (k / DOUBLE_T1) + 1;
+    blocks = (blocks > 65536) ? 65536 : blocks;
+    if (k <= 2)
+    {
+        if (n < 20480)
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 2, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+        else
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 2, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+    }
+    else if (k <= 4)
+    {
+        if (n < 20480)
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 4, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+        else
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 4, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+    }
+    else if (k <= 6)
+    {
+        if (n < 20480)
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 6, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+        else
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 6, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+    }
+    else if (k <= 8)
+    {
+        if (n < 20480)
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 8, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+        else
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 8, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+    }
+    else if (k <= 16)
+    {
+        if (n < 20480)
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 16, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+        else
+        {
+            doubleTSM2Kernel<DOUBLE_T1, 16, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        }
+    }
+    else
+    {
+        doubleTSM2Kernel<DOUBLE_T1, 32, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+    }
+}
+
+
+
 
 
 
@@ -175,47 +287,46 @@ bool runKernels(const float* A, const float* B, float* C,
     // Failure indices
     unsigned int iFail, jFail;
 
-    if (m == k)
+    // Clear result matrix
+    cudaErrchk(cudaMemset(devC, 0, m * n * sizeof(float)));
+    cudaErrchk(cudaEventRecord(startTotal));
+    
+    // Cuda Memory Copy
+    cudaErrchk(cudaMemcpy(devA, A, m * k * sizeof(float), cudaMemcpyHostToDevice));
+    cudaErrchk(cudaMemcpy(devB, B, k * n * sizeof(float), cudaMemcpyHostToDevice));
+
+    int blocks = (k / FLOAT_T1) + 1;
+    blocks = (blocks > 65536) ? 65536 : blocks;
+
+    cudaErrchk(cudaEventRecord(start));
+    #ifdef SINGLE_PARAM
+    floatTSM2Kernel<FLOAT_T1, FLOAT_T2, FLOAT_T3><<<blocks, FLOAT_T1>>>(devA, devB, devC, m, k, n);
+    #else
+    floatTSM2(devA, devB, devC, m, k, n);
+    #endif
+    cudaErrchk(cudaGetLastError());
+    cudaErrchk(cudaEventRecord(end));
+    
+    // Copies result back
+    cudaErrchk(cudaMemcpy(candC, devC, m * n * sizeof(float), cudaMemcpyDeviceToHost));
+
+    cudaErrchk(cudaEventRecord(endTotal));
+    cudaErrchk(cudaDeviceSynchronize());
+    cudaErrchk(cudaEventElapsedTime(&time, start, end));
+    cudaErrchk(cudaEventElapsedTime(&timeTotal, startTotal, endTotal));
+    status = matrixCompare<float>(C, candC, m, n, iFail, jFail);
+    if (status)
     {
-        // If a TSM
-
-        // Clear result matrix
-        cudaErrchk(cudaMemset(devC, 0, m * n * sizeof(float)));
-        cudaErrchk(cudaEventRecord(startTotal));
-    
-        // Cuda Memory Copy
-        cudaErrchk(cudaMemcpy(devA, A, m * k * sizeof(float), cudaMemcpyHostToDevice));
-        cudaErrchk(cudaMemcpy(devB, B, k * n * sizeof(float), cudaMemcpyHostToDevice));
-
-        int blocks = (k / FLOAT_T1) + 1;
-        blocks = (blocks > 65536) ? 65536 : blocks;
-
-        cudaErrchk(cudaEventRecord(start));
-        floatTSM2Kernel<FLOAT_T1, FLOAT_T2, FLOAT_T3><<<blocks, FLOAT_T1>>>(devA, devB, devC, k, n);
-        cudaErrchk(cudaGetLastError());
-        cudaErrchk(cudaEventRecord(end));
-    
-        // Copies result back
-        cudaErrchk(cudaMemcpy(candC, devC, m * n * sizeof(float), cudaMemcpyDeviceToHost));
-
-        cudaErrchk(cudaEventRecord(endTotal));
-        cudaErrchk(cudaDeviceSynchronize());
-        cudaErrchk(cudaEventElapsedTime(&time, start, end));
-        cudaErrchk(cudaEventElapsedTime(&timeTotal, startTotal, endTotal));
-        status = matrixCompare<float>(C, candC, m, n, iFail, jFail);
-        if (status)
-        {
-            reportTestSuccess<float>("TSM2 Kernel Test", 
-                                     getGFLOPs<float>(time, m, n, k), 
-                                     getGFLOPs<float>(timeTotal, m, n, k)); 
-        }
-        else
-        {
-            reportTestFailure<float>("TSM2 Kernel Test", C, candC, m, iFail, jFail);
-        }
-        
-        
+        reportTestSuccess<float>("TSM2 Kernel Test", 
+                                 getGFLOPs<float>(time, m, n, k), 
+                                 getGFLOPs<float>(timeTotal, m, n, k)); 
     }
+    else
+    {
+        reportTestFailure<float>("TSM2 Kernel Test", C, candC, m, iFail, jFail);
+    }
+        
+       
 
     
     cudaErrchk(cudaEventDestroy(start));
@@ -307,46 +418,46 @@ bool runKernels(const double* A, const double* B, double* C,
     // Failure indices
     unsigned int iFail, jFail;
 
-    if (m == k)
+
+    // If a TSM
+
+    // Clear result matrix
+    cudaErrchk(cudaMemset(devC, 0, m * n * sizeof(double)));
+    cudaErrchk(cudaEventRecord(startTotal));
+    
+    // Cuda Memory Copy
+    cudaErrchk(cudaMemcpy(devA, A, m * k * sizeof(double), cudaMemcpyHostToDevice));
+    cudaErrchk(cudaMemcpy(devB, B, k * n * sizeof(double), cudaMemcpyHostToDevice));
+
+    int blocks = (k / DOUBLE_T1) + 1;
+    blocks = (blocks > 65536) ? 65536 : blocks;
+
+    cudaErrchk(cudaEventRecord(start));
+    #ifdef SINGLE_PARAM
+    doubleTSM2Kernel<DOUBLE_T1, DOUBLE_T2, DOUBLE_T3><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, k, n);
+    #else
+    doubleTSM2(devA, devB, devC, m, k, n);
+    #endif
+    cudaErrchk(cudaGetLastError());
+    cudaErrchk(cudaEventRecord(end));
+    
+    // Copies result back
+    cudaErrchk(cudaMemcpy(candC, devC, m * n * sizeof(double), cudaMemcpyDeviceToHost));
+
+    cudaErrchk(cudaEventRecord(endTotal));
+    cudaErrchk(cudaDeviceSynchronize());
+    cudaErrchk(cudaEventElapsedTime(&time, start, end));
+    cudaErrchk(cudaEventElapsedTime(&timeTotal, startTotal, endTotal));
+    status = matrixCompare<double>(C, candC, m, n, iFail, jFail);
+    if (status)
     {
-        // If a TSM
-
-        // Clear result matrix
-        cudaErrchk(cudaMemset(devC, 0, m * n * sizeof(double)));
-        cudaErrchk(cudaEventRecord(startTotal));
-    
-        // Cuda Memory Copy
-        cudaErrchk(cudaMemcpy(devA, A, m * k * sizeof(double), cudaMemcpyHostToDevice));
-        cudaErrchk(cudaMemcpy(devB, B, k * n * sizeof(double), cudaMemcpyHostToDevice));
-
-        int blocks = (k / DOUBLE_T1) + 1;
-        blocks = (blocks > 65536) ? 65536 : blocks;
-
-        cudaErrchk(cudaEventRecord(start));
-        doubleTSM2Kernel<DOUBLE_T1, DOUBLE_T2, DOUBLE_T3><<<blocks, DOUBLE_T1>>>(devA, devB, devC, k, n);
-        cudaErrchk(cudaGetLastError());
-        cudaErrchk(cudaEventRecord(end));
-    
-        // Copies result back
-        cudaErrchk(cudaMemcpy(candC, devC, m * n * sizeof(double), cudaMemcpyDeviceToHost));
-
-        cudaErrchk(cudaEventRecord(endTotal));
-        cudaErrchk(cudaDeviceSynchronize());
-        cudaErrchk(cudaEventElapsedTime(&time, start, end));
-        cudaErrchk(cudaEventElapsedTime(&timeTotal, startTotal, endTotal));
-        status = matrixCompare<double>(C, candC, m, n, iFail, jFail);
-        if (status)
-        {
-            reportTestSuccess<double>("TSM2 Kernel Test", 
-                                     getGFLOPs<double>(time, m, n, k), 
-                                     getGFLOPs<double>(timeTotal, m, n, k)); 
-        }
-        else
-        {
-            reportTestFailure<double>("TSM2 Kernel Test", C, candC, m, iFail, jFail);
-        }
-        
-        
+        reportTestSuccess<double>("TSM2 Kernel Test", 
+                                  getGFLOPs<double>(time, m, n, k), 
+                                  getGFLOPs<double>(timeTotal, m, n, k)); 
+    }
+    else
+    {
+        reportTestFailure<double>("TSM2 Kernel Test", C, candC, m, iFail, jFail);
     }
 
 

@@ -1,8 +1,11 @@
 
-TSM2 Implementation for nVidia Volta GPU Architecture
-=====================================================
+TSM2 Implementation
+===================
 
-by Cody Rivera, [insert other collabs here]
+by
+Cody Rivera (cjrivera1@crimson.ua.edu)
+Jieyang Chen (chenj3@ornl.gov) (First Author)
+Dingwen Tao (tao@cs.ua.edu)
 
 This repository contains an implementation of TSM2 as described by
 Chen et al. [1]. TSM2 is a parallel matrix-matrix multiplication algorithm 
@@ -11,6 +14,18 @@ where k is much smaller than n. According to experimental data, this algorithm
 is faster and utilizes more memory bandwidth than CUBLAS when multiplying tall
 and skinny matrices.
 
+We have implemented the kernels as templates, with the parameters t1, t2, and t3 as
+template variables. The program will select an optimal kernel depending on the 
+size of the input matrices. Currently, this implementation is only optimized
+for the Nvidia V100 GPU.
+
+The implementation also accepts matrices of size (m * n) and (n * k), where m != n.
+
+Please feel free to contact one of us if you have any questions.
+
+
+Instructions:
+-------------
 
 This implementation is designed for Unix platforms, and can be built using
 'make'. The usage of this program is: 
@@ -19,7 +34,7 @@ where a.mtx and b.mtx are input matrices and c.mtx is an output matrix.
 Note that the optional parameter [-d] indicates that the matrices are 
 double precision.
 
-The format of the matrices is binary, with a structure:
+The format of the matrices is binary, with a structure as follows:
 
 template <typename FloatType>
 struct matrixFormat
@@ -28,12 +43,11 @@ struct matrixFormat
     FloatType values[rows * cols];
 };
 
-The values are stored in column-major format.
+The matrix is stored in column-major format.
 All multibyte values are little-endian.
 
 The setting of parameters t1, t2, and t3 [1] will take place at compile time.
 
-** TODO -- Add CSV export option **
 
 
 Sources:
