@@ -58,7 +58,7 @@ Ouyang, Kai Zhao, Nathan DeBardeleben, Qiang Guan, Zizhong Chen.
 2019. TSM2: Optimizing Tall-and-Skinny Matrix-Matrix Multiplication on
 GPUs. In 2019 International Conference on Supercomputing (ICS ’19), June
 26–28, 2019, Phoenix, AZ, USA. ACM, New York, NY, USA, 11 pages. [https:
-//doi.org/10.1145/3330345.3330355]
+//doi.org/10.1145/3330345.3330355](https://doi.org/10.1145/3330345.3330355)
 
 
 
