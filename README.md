@@ -1,6 +1,6 @@
 
-Tall-And-Skinny Matrix Multiplication Implementation
-====================================================
+Tall-And-Skinny Matrix Multiplication for CUDA
+==============================================
 
 by
 Cody Rivera [cjrivera1@crimson.ua.edu],
