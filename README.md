@@ -1,6 +1,6 @@
 
-TSM2 Implementation
-===================
+Tall-And-Skinny Matrix Multiplication Implementation
+====================================================
 
 by
 Cody Rivera [cjrivera1@crimson.ua.edu],
