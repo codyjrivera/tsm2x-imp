@@ -1,6 +1,6 @@
 
-Tall-And-Skinny Matrix Multiplication for CUDA
-==============================================
+TSM2: Tall-And-Skinny Matrix Multiplication for CUDA
+====================================================
 
 by
 Cody Rivera [cjrivera1@crimson.ua.edu],
