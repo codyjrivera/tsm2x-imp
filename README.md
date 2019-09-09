@@ -48,6 +48,9 @@ struct matrixFormat
 The matrix is stored in column-major format.
 All multibyte values are little-endian.
 
+You may use the provided gen.cpp program to generate input
+matrices. The usage is ./gen [-d] -r ROW_COUNT -c COL_COUNT file,
+where -d signifies double precision.
 
 
 Sources:

@@ -117,17 +117,17 @@ int main(int argc, char** argv)
     std::ofstream outFile(argv[fileArg[2]], std::ios::binary);
     if (!fileA)
     {
-        fprintf(stderr, "Cannot open %s for reading\n", argv[1]);
+        fprintf(stderr, "Cannot open %s for reading\n", argv[fileArg[1]]);
         return 1;
     }
     if (!fileB)
     {
-        fprintf(stderr, "Cannot open %s for reading\n", argv[2]);
+        fprintf(stderr, "Cannot open %s for reading\n", argv[fileArg[2]]);
         return 1;
     }
     if (!outFile)
     {
-        fprintf(stderr, "Cannot open %s for writing\n", argv[3]);
+        fprintf(stderr, "Cannot open %s for writing\n", argv[fileArg[3]]);
         return 1;
     }
     // Runs matmul

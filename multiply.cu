@@ -114,8 +114,9 @@ void floatTSM2(const float* devA, const float* devB, float* devC,
                const unsigned int n, const unsigned int m,
                const unsigned int k)
 {
-    int blocks = (k / FLOAT_T1) + 1;
+    int blocks = (n / FLOAT_T1) + 1;
     blocks = (blocks > 65536) ? 65536 : blocks;
+
     if (k <= 2)
     {
         floatTSM2Kernel<FLOAT_T1, 2, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
@@ -141,10 +142,11 @@ void floatTSM2(const float* devA, const float* devB, float* devC,
 
 void doubleTSM2(const double* devA, const double* devB, double* devC,
                const unsigned int n, const unsigned int m,
-               const unsigned int k)
+                const unsigned int k, cudaEvent_t& start, cudaEvent_t& stop)
 {
-    int blocks = (k / DOUBLE_T1) + 1;
+    int blocks = (n / DOUBLE_T1) + 1;
     blocks = (blocks > 65536) ? 65536 : blocks;
+    
     if (k <= 2)
     {
         if (n < 20480)
@@ -203,7 +205,7 @@ void doubleTSM2(const double* devA, const double* devB, double* devC,
     else
     {
         doubleTSM2Kernel<DOUBLE_T1, 32, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
-    }
+    }    
 }
 
 
@@ -436,7 +438,7 @@ bool runKernels(const double* A, const double* B, double* C,
     #ifdef SINGLE_PARAM
     doubleTSM2Kernel<DOUBLE_T1, DOUBLE_T2, DOUBLE_T3><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, k, n);
     #else
-    doubleTSM2(devA, devB, devC, m, k, n);
+    doubleTSM2(devA, devB, devC, m, k, n, start, end);
     #endif
     cudaErrchk(cudaGetLastError());
     cudaErrchk(cudaEventRecord(end));
