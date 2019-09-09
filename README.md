@@ -1,11 +1,11 @@
 
-Tall-And-Skinny Matrix Multiplication for CUDA
-==============================================
+TSM2: Tall-And-Skinny Matrix Multiplication for CUDA
+====================================================
 
 by
 Cody Rivera [cjrivera1@crimson.ua.edu],
 Jieyang Chen [chenj3@ornl.gov] (First Author), and
-Dingwen Tao [tao@cs.ua.edu]
+Dingwen Tao [tao@cs.ua.edu] (Supervisor)
 
 This repository contains an implementation of TSM2 as described by
 Chen et al. [1]. TSM2 is a parallel matrix-matrix multiplication algorithm 
@@ -20,9 +20,6 @@ size of the input matrices. Currently, this implementation is only optimized
 for the Nvidia V100 GPU.
 
 The implementation also accepts matrices of size (m * n) and (n * k), where m != n.
-
-Please feel free to contact one of us if you have any questions.
-
 
 Instructions:
 -------------
@@ -56,12 +53,10 @@ where -d signifies double precision.
 Sources:
 --------
 
-[1] Jieyang Chen, Nan Xiong, Xin Liang, Dingwen Tao, Sihuan Li, Kaiming
-Ouyang, Kai Zhao, Nathan DeBardeleben, Qiang Guan, Zizhong Chen.
-2019. TSM2: Optimizing Tall-and-Skinny Matrix-Matrix Multiplication on
-GPUs. In 2019 International Conference on Supercomputing (ICS ’19), June
-26–28, 2019, Phoenix, AZ, USA. ACM, New York, NY, USA, 11 pages. [https:
-//doi.org/10.1145/3330345.3330355](https://doi.org/10.1145/3330345.3330355)
+[1] Chen, Jieyang, Nan Xiong, Xin Liang, Dingwen Tao, Sihuan Li, Kaiming Ouyang, Kai Zhao, Nathan DeBardeleben, Qiang Guan, and Zizhong Chen. 
+"TSM2: optimizing tall-and-skinny matrix-matrix multiplication on GPUs." 
+In Proceedings of the ACM International Conference on Supercomputing (ICS), pp. 106-116. ACM, 2019. 
+[https://doi.org/10.1145/3330345.3330355](https://doi.org/10.1145/3330345.3330355)
 
 
 
