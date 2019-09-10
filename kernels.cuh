@@ -92,51 +92,70 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                 }
                 
                 const int t3mod = t1 % t3;
-                // Loop over A's columns 
-                for (int l = j; l < j + (t1 - t3mod) && l < m; l += t3)
+                // Two cases - ordinary and edge
+                if (m > t3)
                 {
-                    // Loads next A
-                    #pragma unroll
-                    for (int i = 0; i < t3; ++i)
+                    // Loop over A's columns 
+                    for (int l = j; l < j + (t1 - t3mod) && l < m; l += t3)
                     {
-                        if (l + t3 + i < m && thread < n)
+                        // Loads next A
+                        #pragma unroll
+                        for (int i = 0; i < t3; ++i)
                         {
-                            nextA[i] = A[thread + ((l + t3 + i) * n)];
+                            if (l + t3 + i < m && thread < n)
+                            {
+                                nextA[i] = A[thread + ((l + t3 + i) * n)];
+                            }
+                        }
+                                        
+                        // Floating Point Operations (lines 32-34)
+                        // Each thread does t2 * t3 mults
+                        #pragma unroll
+                        for (int i = 0; i < t2; ++i)
+                        {
+                            #pragma unroll
+                            for (int k = 0; k < t3; ++k)
+                            {
+                                currC[i] += currA[k] * currB[(l - j) + k + (i * t1)]; 
+                            }
+                        }
+                    
+                        // Stores next A in curr A
+                        #pragma unroll
+                        for (int i = 0; i < t3; ++i)
+                        {
+                            currA[i] = nextA[i];
                         }
                     }
-                                        
-                    // Floating Point Operations (lines 32-34)
-                    // Each thread does t2 * t3 mults
+                    // Accommodates t3 that do not divide t1.
+                    #pragma unroll
+                    for (int i = 0; i < t2; ++i)
+                    {
+                        #pragma unroll
+                        for (int k = 0; k < t3mod; ++k)
+                        {
+                            if (j + t1 - t3mod + k < m)
+                            {
+                                currC[i] += currA[k] * currB[(t1 - t3mod + k) + (i * t1)];
+                            }
+                        }
+                    }
+                }
+                else
+                {
                     #pragma unroll
                     for (int i = 0; i < t2; ++i)
                     {
                         #pragma unroll
                         for (int k = 0; k < t3; ++k)
                         {
-                            currC[i] += currA[k] * currB[(l - j) + k + (i * t1)]; 
+                            if (j + k < m)
+                            {
+                                currC[i] += currA[k] * currB[k + (i * t1)];
+                            }
                         }
-                    }
-                    
-                    // Stores next A in curr A
-                    #pragma unroll
-                    for (int i = 0; i < t3; ++i)
-                    {
-                        currA[i] = nextA[i];
                     }
                 }
-                // Accommodates t3 that do not divide t1.
-                #pragma unroll
-                for (int i = 0; i < t2; ++i)
-                {
-                    #pragma unroll
-                    for (int k = 0; k < t3mod; ++k)
-                    {
-                        if (j + t1 - t3mod + k < m)
-                        {
-                            currC[i] += currA[k] * currB[(t1 - t3mod + k) + (i * t1)];
-                        }
-                    }
-                } 
 
                 __syncthreads();
 
@@ -182,12 +201,12 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                                  const unsigned int k)
 {
     // Names mostly follow the published code
-    __shared__ double currB[t1 * t2];
+    __shared__ float currB[t1 * t2];
     
-    double currA[t3];
-    double nextA[t3];
-    double nextB[t2];
-    double currC[t2];
+    float currA[t3];
+    float nextA[t3];
+    float nextB[t2];
+    float currC[t2];
         
     const int tid = threadIdx.x;
     int threadBase = (blockIdx.x * blockDim.x);
@@ -258,51 +277,70 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                 }
                 
                 const int t3mod = t1 % t3;
-                // Loop over A's columns 
-                for (int l = j; l < j + (t1 - t3mod) && l < m; l += t3)
+                // Two cases - ordinary and edge
+                if (m > t3)
                 {
-                    // Loads next A
-                    #pragma unroll
-                    for (int i = 0; i < t3; ++i)
+                    // Loop over A's columns 
+                    for (int l = j; l < j + (t1 - t3mod) && l < m; l += t3)
                     {
-                        if (l + t3 + i < m && thread < n)
+                        // Loads next A
+                        #pragma unroll
+                        for (int i = 0; i < t3; ++i)
                         {
-                            nextA[i] = A[thread + ((l + t3 + i) * n)];
+                            if (l + t3 + i < m && thread < n)
+                            {
+                                nextA[i] = A[thread + ((l + t3 + i) * n)];
+                            }
+                        }
+                                        
+                        // Floating Point Operations (lines 32-34)
+                        // Each thread does t2 * t3 mults
+                        #pragma unroll
+                        for (int i = 0; i < t2; ++i)
+                        {
+                            #pragma unroll
+                            for (int k = 0; k < t3; ++k)
+                            {
+                                currC[i] += currA[k] * currB[(l - j) + k + (i * t1)]; 
+                            }
+                        }
+                    
+                        // Stores next A in curr A
+                        #pragma unroll
+                        for (int i = 0; i < t3; ++i)
+                        {
+                            currA[i] = nextA[i];
                         }
                     }
-                                        
-                    // Floating Point Operations (lines 32-34)
-                    // Each thread does t2 * t3 mults
+                    // Accommodates t3 that do not divide t1.
+                    #pragma unroll
+                    for (int i = 0; i < t2; ++i)
+                    {
+                        #pragma unroll
+                        for (int k = 0; k < t3mod; ++k)
+                        {
+                            if (j + t1 - t3mod + k < m)
+                            {
+                                currC[i] += currA[k] * currB[(t1 - t3mod + k) + (i * t1)];
+                            }
+                        }
+                    }
+                }
+                else
+                {
                     #pragma unroll
                     for (int i = 0; i < t2; ++i)
                     {
                         #pragma unroll
                         for (int k = 0; k < t3; ++k)
                         {
-                            currC[i] += currA[k] * currB[(l - j) + k + (i * t1)]; 
+                            if (j + k < m)
+                            {
+                                currC[i] += currA[k] * currB[k + (i * t1)];
+                            }
                         }
-                    }
-                    
-                    // Stores next A in curr A
-                    #pragma unroll
-                    for (int i = 0; i < t3; ++i)
-                    {
-                        currA[i] = nextA[i];
                     }
                 }
-                // Accommodates t3 that do not divide t1.
-                #pragma unroll
-                for (int i = 0; i < t2; ++i)
-                {
-                    #pragma unroll
-                    for (int k = 0; k < t3mod; ++k)
-                    {
-                        if (j + t1 - t3mod + k < m)
-                        {
-                            currC[i] += currA[k] * currB[(t1 - t3mod + k) + (i * t1)];
-                        }
-                    }
-                } 
 
                 __syncthreads();
 
@@ -339,7 +377,7 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                 }
             }
         }
-    }    
+    }
 }
 
 

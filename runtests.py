@@ -1,8 +1,14 @@
 # Brute force parameter optimization for TSM2
 # by Cody Rivera
 
+
+# you will need to modify your subprocess.check_output calls to use this script
+# in other installations
+
 import subprocess
 import csv
+from os import system
+
 
 # True Raw Optimal Parameters - Not adjusted
 
@@ -69,7 +75,7 @@ t1Value = 128
 # Writes CSV header
 
 def writeCSVHeader(wo):
-    wo.writerow(["Precision", "n", "k", "t1", "t2", "t3", "CUBLAS GFLOPS", "TSM2 GFLOPS", "Speedup"])
+    wo.writerow(["Precision", "n", "m", "k", "CUBLAS GFLOPS", "TSM2 GFLOPS", "Speedup"])
 
 # Writes new parameter file
 
@@ -84,19 +90,35 @@ def writeParameterFile(t1, t2, t3):
     f.write("#define DOUBLE_T3 " + str(t3) + "\n")
     f.close()
 
+def writeRegularParameterFile():
+    f = open("parameters.cuh", 'w')
+    f.write("//#define SINGLE_PARAM true" + "\n")
+    f.write("#define FLOAT_T1 " + str(t1Value) + "\n")
+    f.write("#define FLOAT_T2 " + str(32) + "\n")
+    f.write("#define FLOAT_T3 " + str(32) + "\n")
+    f.write("#define DOUBLE_T1 " + str(t1Value) + "\n")
+    f.write("#define DOUBLE_T2 " + str(32) + "\n")
+    f.write("#define DOUBLE_T3 " + str(32) + "\n")
+    f.close()
+
+
 
 # Compiles the program
 def compileProgram(t2, t3):
     writeParameterFile(t1Value, t2, t3)
     subprocess.check_output(["make"], stderr=subprocess.DEVNULL)
 
+def compileRegularProgram():
+    writeRegularParameterFile()
+    subprocess.check_output(["make"], stderr=subprocess.DEVNULL)
+
 
 # Testbench function
 
-def testSingleValues(n, k, t2, t3):
+def testSingleValues(n, m, k):
     try:
-        single = subprocess.check_output(["ssh", "gpu01", "cd re*/ts* ; ./multiply test/a_" + str(n) + "_" + str(n) + ".mtx "
-                             + "test/b_" + str(n) + "_" + str(k) + ".mtx out"])
+        single = subprocess.check_output(["ssh", "gpu01", "cd re*/ts* ; ./multiply test/a_" + str(n) + "_" + str(m) + ".mtx "
+                                          + "test/b_" + str(m) + "_" + str(k) + ".mtx out"])
         
         singleCVal, singleVal = 0, 0
         try:
@@ -108,14 +130,15 @@ def testSingleValues(n, k, t2, t3):
     
         return singleCVal, singleVal
     except:
-        compileProgram(t2, t3)
-        return testSingleValues(n, k, t2, t3)
+        genAMatrix(n, m)
+        genBMatrix(m, k)
+        return testSingleValues(n, m, k)
 
 
-def testDoubleValues(n, k, t2, t3):
+def testDoubleValues(n, m, k):
     try:
-        double = subprocess.check_output(["ssh", "gpu01", "cd re*/ts* ; ./multiply -d test/a_" + str(n) + "_" + str(n) + ".d.mtx "
-                             + "test/b_" + str(n) + "_" + str(k) + ".d.mtx out"])
+        double = subprocess.check_output(["ssh", "gpu01", "cd re*/ts* ; ./multiply -d test/a_" + str(n) + "_" + str(m) + ".d.mtx "
+                                          + "test/b_" + str(m) + "_" + str(k) + ".d.mtx out"])
 
         doubleCVal, doubleVal = 0, 0
         
@@ -128,29 +151,63 @@ def testDoubleValues(n, k, t2, t3):
     
         return doubleCVal, doubleVal
     except:
-        compileProgram(t2, t3)
-        return testDoubleValues(n, k, t2, t3)
+        genAMatrix(n, m)
+        genBMatrix(m, k)
+        return testDoubleValues(n, m, k)
+
+
+
+# Matrix generation
+def genAMatrix(a, b):
+    system("./gen " + " -r " + str(a) + " -c " + str(b) + " " + " test/a_" + str(a) + "_" + str(b) + ".mtx")
+    system("./gen -d " + " -r " + str(a) + " -c " + str(b) + " " + " test/a_" + str(a) + "_" + str(b) + ".d.mtx")
+
+def genBMatrix(a, b):
+    system("./gen " + " -r " + str(a) + " -c " + str(b) + " " + " test/b_" + str(a) + "_" + str(b) + ".mtx")
+    system("./gen -d " + " -r " + str(a) + " -c " + str(b) + " " + " test/b_" + str(a) + "_" + str(b) + ".d.mtx")
+
+
+def rmAMatrix(a, b):
+    system("rm test/a_" + str(a) + "_" + str(b) + ".mtx")
+    system("rm test/a_" + str(a) + "_" + str(b) + ".d.mtx")
+
+def rmBMatrix(a, b):
+    system("rm test/b_" + str(a) + "_" + str(b) + ".mtx")
+    system("rm test/b_" + str(a) + "_" + str(b) + ".d.mtx")
+
+
 
 
 
 def benchmarkTSM2():
     csvfile = open("results.csv", "w")
+    compileRegularProgram()
     csvwo = csv.writer(csvfile)
     writeCSVHeader(csvwo)
     n = [10240, 15360, 20480, 25600, 30720]
     k = [2, 4, 6, 8, 16]
-    for i in n:
-        for j in k:
-            # Single Precision
-            t2, t3 = optParamsSingle.get((i, j))
-            compileProgram(t2, t3)
-            cVal, val = testSingleValues(i, j, t2, t3)
-            csvwo.writerow(["Single", i, j, t1Value, t2, t3, cVal, val, val/cVal])
-            # Double Precision
-            t2, t3 = optParamsDouble.get((i, j))
-            compileProgram(t2, t3)
-            cVal, val = testDoubleValues(i, j, t2, t3)
-            csvwo.writerow(["Double", i, j, t1Value, t2, t3, cVal, val, val/cVal])
+    for a in n:
+        for b in [a//8, a//4, a//2, a]:
+            for c in k:
+                # Generates these matrices
+                genAMatrix(a, b)
+                genBMatrix(b, c)
+
+                # Single Precision
+                #t2, t3 = optParamsSingle.get((i, j))
+                #compileProgram(t2, t3)
+                cVal, val = testSingleValues(a, b, c)
+                csvwo.writerow(["Single", a, b, c, cVal, val, val/cVal])
+                # Double Precision
+                #t2, t3 = optParamsDouble.get((i, j))
+                #compileProgram(t2, t3)
+                cVal, val = testDoubleValues(a, b, c)
+                csvwo.writerow(["Double", a, b, c, cVal, val, val/cVal])
+
+                # Removes these matrices
+                rmAMatrix(a, b)
+                rmBMatrix(b, c)
+
     csvfile.close()
             
 
