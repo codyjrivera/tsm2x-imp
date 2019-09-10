@@ -187,7 +187,7 @@ def benchmarkTSM2():
     n = [10240, 15360, 20480, 25600, 30720]
     k = [2, 4, 6, 8, 16]
     for a in n:
-        for b in [a//8, a//4, a//2, a]:
+        for b in [2, 4, 8, 16, 32, 64, a]:
             for c in k:
                 # Generates these matrices
                 genAMatrix(a, b)
