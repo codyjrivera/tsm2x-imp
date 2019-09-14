@@ -9,8 +9,8 @@ Dingwen Tao [tao@cs.ua.edu] (Supervisor)
 
 This repository contains an implementation of TSM2 as described by
 Chen et al. [1]. TSM2 is a parallel matrix-matrix multiplication algorithm 
-optimized for tall and skinny matrices: matrices of size (n * n) and (n * k)
-where k is much smaller than n. According to experimental data, this algorithm
+optimized for tall and skinny matrices: matrices of size (m * m) and (m * n)
+where n is much smaller than m [2]. According to experimental data, this algorithm
 is faster and utilizes more memory bandwidth than CUBLAS when multiplying tall
 and skinny matrices.
 
@@ -19,7 +19,7 @@ template variables [1]. The program will select an optimal kernel depending on t
 size of the input matrices. Currently, this implementation is only optimized
 for the Nvidia V100 GPU.
 
-The implementation also accepts matrices of size (m * n) and (n * k), where m != n.
+The implementation also accepts matrices of size (m * k) and (k * n), where m != k.
 
 Instructions:
 -------------
@@ -50,13 +50,16 @@ matrices. The usage is ./gen [-d] -r ROW_COUNT -c COL_COUNT file,
 where -d signifies double precision.
 
 
-Sources:
---------
+Notes:
+------
 
 [1] Chen, Jieyang, Nan Xiong, Xin Liang, Dingwen Tao, Sihuan Li, Kaiming Ouyang, Kai Zhao, Nathan DeBardeleben, Qiang Guan, and Zizhong Chen. 
 "TSM2: optimizing tall-and-skinny matrix-matrix multiplication on GPUs." 
 In Proceedings of the ACM International Conference on Supercomputing (ICS), pp. 106-116. ACM, 2019. 
 [https://doi.org/10.1145/3330345.3330355](https://doi.org/10.1145/3330345.3330355)
+
+[2] In [1], the matrices are presented as being of size (n * n) and (n * k). We have relabeled our matrices to be more consistent
+with CUBLAS.
 
 
 

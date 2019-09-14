@@ -1,4 +1,4 @@
-B65;5603;1c# Brute force parameter optimization for TSM2
+# Brute force parameter optimization for TSM2
 # by Cody Rivera
 
 import subprocess

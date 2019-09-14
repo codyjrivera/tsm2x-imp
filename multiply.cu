@@ -105,106 +105,106 @@ double getGFLOPs(double time, unsigned int m, unsigned int n, unsigned int k)
   
   t1 := 128
   
-  Single Precision: k ~= t2, t3 := 32
-  Double Precision: k ~= t2, t3 := 16 if n < 10240, and t3 := 12 otherwise
+  Single Precision: n ~= t2, t3 := 32
+  Double Precision: n ~= t2, t3 := 16 if m < 10240, and t3 := 12 otherwise
   
  */
 
 void floatTSM2(const float* devA, const float* devB, float* devC,
-               const unsigned int n, const unsigned int m,
+               const unsigned int m, const unsigned int n,
                const unsigned int k)
 {
-    int blocks = (n / FLOAT_T1) + 1;
+    int blocks = (m / FLOAT_T1) + 1;
     blocks = (blocks > 65536) ? 65536 : blocks;
 
-    if (k <= 2)
+    if (n <= 2)
     {
-        floatTSM2Kernel<FLOAT_T1, 2, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+        floatTSM2Kernel<FLOAT_T1, 2, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, m, n, k);
     }
-    else if (k <= 4)
+    else if (n <= 4)
     {
-        floatTSM2Kernel<FLOAT_T1, 4, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+        floatTSM2Kernel<FLOAT_T1, 4, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, m, n, k);
     }
-    else if (k <= 6)
+    else if (n <= 6)
     {
-        floatTSM2Kernel<FLOAT_T1, 6, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+        floatTSM2Kernel<FLOAT_T1, 6, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, m, n, k);
     }
-    else if (k <= 8)
+    else if (n <= 8)
     {
-        floatTSM2Kernel<FLOAT_T1, 8, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+        floatTSM2Kernel<FLOAT_T1, 8, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, m, n, k);
     }
     else
     {
-        floatTSM2Kernel<FLOAT_T1, 16, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, n, m, k);
+        floatTSM2Kernel<FLOAT_T1, 16, 32><<<blocks, FLOAT_T1>>>(devA, devB, devC, m, n, k);
     }
     // Since CUBLAS starts beating TSM2 at 16, there is no need to include another kernel
 }
 
 void doubleTSM2(const double* devA, const double* devB, double* devC,
-               const unsigned int n, const unsigned int m,
-                const unsigned int k, cudaEvent_t& start, cudaEvent_t& stop)
+               const unsigned int m, const unsigned int n,
+                const unsigned int k)
 {
-    int blocks = (n / DOUBLE_T1) + 1;
+    int blocks = (m / DOUBLE_T1) + 1;
     blocks = (blocks > 65536) ? 65536 : blocks;
     
-    if (k <= 2)
+    if (n <= 2)
     {
-        if (n < 20480)
+        if (m < 20480)
         {
-            doubleTSM2Kernel<DOUBLE_T1, 2, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 2, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
         else
         {
-            doubleTSM2Kernel<DOUBLE_T1, 2, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 2, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
     }
-    else if (k <= 4)
+    else if (n <= 4)
     {
-        if (n < 20480)
+        if (m < 20480)
         {
-            doubleTSM2Kernel<DOUBLE_T1, 4, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 4, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
         else
         {
-            doubleTSM2Kernel<DOUBLE_T1, 4, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 4, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
     }
-    else if (k <= 6)
+    else if (n <= 6)
     {
-        if (n < 20480)
+        if (m < 20480)
         {
-            doubleTSM2Kernel<DOUBLE_T1, 6, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 6, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
         else
         {
-            doubleTSM2Kernel<DOUBLE_T1, 6, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 6, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
     }
-    else if (k <= 8)
+    else if (n <= 8)
     {
-        if (n < 20480)
+        if (m < 20480)
         {
-            doubleTSM2Kernel<DOUBLE_T1, 8, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 8, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
         else
         {
-            doubleTSM2Kernel<DOUBLE_T1, 8, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 8, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
     }
-    else if (k <= 16)
+    else if (n <= 16)
     {
-        if (n < 20480)
+        if (m < 20480)
         {
-            doubleTSM2Kernel<DOUBLE_T1, 16, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 16, 16><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
         else
         {
-            doubleTSM2Kernel<DOUBLE_T1, 16, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+            doubleTSM2Kernel<DOUBLE_T1, 16, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
         }
     }
     else
     {
-        doubleTSM2Kernel<DOUBLE_T1, 32, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, n, m, k);
+        doubleTSM2Kernel<DOUBLE_T1, 32, 12><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
     }    
 }
 
@@ -302,9 +302,9 @@ bool runKernels(const float* A, const float* B, float* C,
 
     cudaErrchk(cudaEventRecord(start));
     #ifdef SINGLE_PARAM
-    floatTSM2Kernel<FLOAT_T1, FLOAT_T2, FLOAT_T3><<<blocks, FLOAT_T1>>>(devA, devB, devC, m, k, n);
+    floatTSM2Kernel<FLOAT_T1, FLOAT_T2, FLOAT_T3><<<blocks, FLOAT_T1>>>(devA, devB, devC, m, n, k);
     #else
-    floatTSM2(devA, devB, devC, m, k, n);
+    floatTSM2(devA, devB, devC, m, n, k);
     #endif
     cudaErrchk(cudaGetLastError());
     cudaErrchk(cudaEventRecord(end));
@@ -436,9 +436,9 @@ bool runKernels(const double* A, const double* B, double* C,
 
     cudaErrchk(cudaEventRecord(start));
     #ifdef SINGLE_PARAM
-    doubleTSM2Kernel<DOUBLE_T1, DOUBLE_T2, DOUBLE_T3><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, k, n);
+    doubleTSM2Kernel<DOUBLE_T1, DOUBLE_T2, DOUBLE_T3><<<blocks, DOUBLE_T1>>>(devA, devB, devC, m, n, k);
     #else
-    doubleTSM2(devA, devB, devC, m, k, n, start, end);
+    doubleTSM2(devA, devB, devC, m, n, k);
     #endif
     cudaErrchk(cudaGetLastError());
     cudaErrchk(cudaEventRecord(end));

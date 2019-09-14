@@ -44,12 +44,12 @@ bool runKernels(const FloatType* A, const FloatType* B, FloatType* C,
    TSM Matrix Multiplication Interface
 
    Inputs - passed const:
-   n, k - Unsigned integer dimensions
-   A - Column major matrix n * n with leading dimension n
-   B - Column major matrix n * k with leading dimension n
+   m, n, k - Unsigned integer dimensions
+   A - Column major matrix m * k with leading dimension m
+   B - Column major matrix k * n with leading dimension k
    
    Outputs:
-   C - Column major matrix n * k with leading dimension n
+   C - Column major matrix m * n with leading dimension m
  */
 
 
@@ -57,11 +57,13 @@ bool runKernels(const FloatType* A, const FloatType* B, FloatType* C,
 
 template <int t1, int t2, int t3>
 __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
-                                const unsigned int n, const unsigned int k);
+                                const unsigned int m, const unsigned int n,
+                                const unsigned int k);
 
 template <int t1, int t2, int t3>
 __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
-                                 const unsigned int n, const unsigned int k);
+                                 const unsigned int m, const unsigned int n,
+                                 const unsigned int k);
 
 */
 #endif

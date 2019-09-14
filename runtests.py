@@ -185,9 +185,9 @@ def benchmarkTSM2():
     csvwo = csv.writer(csvfile)
     writeCSVHeader(csvwo)
     n = [10240, 15360, 20480, 25600, 30720]
-    k = [2, 4, 6, 8, 16]
+    k = [2, 4, 6, 8, 16, 32, 64]
     for a in n:
-        for b in [2, 4, 8, 16, 32, 64, a]:
+        for b in [4, 8, 16, 32, 64, a//4, a//2, a]:
             for c in k:
                 # Generates these matrices
                 genAMatrix(a, b)
