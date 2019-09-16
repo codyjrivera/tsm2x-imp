@@ -132,7 +132,7 @@ __global__ void floatTSM2Kernel(const float* A, const float* B, float* C,
                             #pragma unroll
                             for (int b = 0; b < t3; ++b)
                             {
-                                if (l + k < k)
+                                if (l + b < k)
                                 {
                                     currC[a] += currA[b] * currB[(l - j) + b + (a * t1)]; 
                                 }
@@ -322,7 +322,7 @@ __global__ void doubleTSM2Kernel(const double* A, const double* B, double* C,
                             #pragma unroll
                             for (int b = 0; b < t3; ++b)
                             {
-                                if (l + k < k)
+                                if (l + b < k)
                                 {
                                     currC[a] += currA[b] * currB[(l - j) + b + (a * t1)]; 
                                 }

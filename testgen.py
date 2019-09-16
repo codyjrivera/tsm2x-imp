@@ -1,13 +1,15 @@
 #/usr/bin/python3
 from os import system
 
-nList = [10240, 15360, 20480, 25600, 30720]
-kList = [2, 4, 6, 8]
+mList = [30720, 15360, 7680, 64, 32, 16, 8, 4]
+nList = [30720]
+kList = [16]
 
 for i in nList:
-    system("./gen " + " -r " + str(i) + " -c " + str(i) + " " + " test/a_" + str(i) + "_" + str(i) + ".mtx")
-    system("./gen -d " + " -r " + str(i) + " -c " + str(i) + " " + " test/a_" + str(i) + "_" + str(i) + ".d.mtx")
-    for j in kList:
-        system("./gen " + " -r " + str(i) + " -c " + str(j) + " " + " test/b_" + str(i) + "_" + str(j) + ".mtx")
-        system("./gen -d " + " -r " + str(i) + " -c " + str(j) + " " + " test/b_" + str(i) + "_" + str(j) + ".d.mtx")
+    for i2 in mList:
+        system("./gen " + " -r " + str(i) + " -c " + str(i2) + " " + " test/a_" + str(i) + "_" + str(i2) + ".mtx")
+        system("./gen -d " + " -r " + str(i) + " -c " + str(i2) + " " + " test/a_" + str(i) + "_" + str(i2) + ".d.mtx")
+        for j in kList:
+            system("./gen " + " -r " + str(i2) + " -c " + str(j) + " " + " test/b_" + str(i2) + "_" + str(j) + ".mtx")
+            system("./gen -d " + " -r " + str(i2) + " -c " + str(j) + " " + " test/b_" + str(i2) + "_" + str(j) + ".d.mtx")
 
