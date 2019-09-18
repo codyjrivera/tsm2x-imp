@@ -58,8 +58,7 @@ Notes:
 In Proceedings of the ACM International Conference on Supercomputing (ICS), pp. 106-116. ACM, 2019. 
 [https://doi.org/10.1145/3330345.3330355](https://doi.org/10.1145/3330345.3330355)
 
-[2] In [1], the matrices are presented as being of size (m * m) and (m * k). We have relabeled our matrices to be more consistent
-with CUBLAS.
+[2] In [1], the matrices are presented as being of size (n * n) and (n * k). We have relabeled our matrices to (m * m) and (m * n) in order to be more consistent with CUBLAS.
 
 
 
