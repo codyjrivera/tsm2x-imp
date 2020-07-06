@@ -1,43 +1,49 @@
 
-TSM2: Tall-And-Skinny Matrix Multiplication for CUDA
-====================================================
+ISM2: Irregular-Shape Matrix-Matrix Multiplication on the GPU
+=============================================================
 
 by
 Cody Rivera [cjrivera1@crimson.ua.edu],
-Jieyang Chen [chenj3@ornl.gov] (First Author), and
-Dingwen Tao [tao@cs.ua.edu] (Supervisor)
+Jieyang Chen [chenj3@ornl.gov], and
+Dingwen Tao [dingwen.tao@wsu.edu]
 
-This repository contains an implementation of TSM2 as described by
-Chen et al. [1]. TSM2 is a parallel matrix-matrix multiplication algorithm 
-optimized for tall and skinny matrices: matrices of size (m * m) and (m * n)
-where n is much smaller than m [2]. According to experimental data, this algorithm
-is faster and utilizes more memory bandwidth than CUBLAS when multiplying tall
-and skinny matrices.
+This repository contains an implementation of two irregular-shape matrix-matrix
+multiplication algorithms, `TSM2` and `ISM2`. `TSM2` is designed to efficiently
+multiply a large square (or near-square) matrix by a tall-and-skinny matrix, or
+more specifically, an (m * k) and (k * n) matrix-matrix multiplication where
+m and k are approximately equal, and n is much smaller than k. `ISM2` is designed
+to efficiently multiply a tall-and-skinny matrix by a small square matrix, or
+more specifically, an (m * k) and (k * n) matrix-matrix multiplication where 
+k is much smaller than m, and k and n are approximately equal.
 
-We have implemented the kernels as templates, with the parameters t1, t2, and t3 as
+We propose `TSM2` and `ISM2` in our preprint,
+"ISM2: Optimizing Irregular-Shaped Matrix-Matrix Multiplication on GPUs." [1].
+Our work extends an ICS conference paper [2], which introduces `TSM2`, by expanding
+its techniques for different matrix sizes as well as porting the algorithm to the Nvidia
+Tesla V100.
+
+We have implemented the kernels as templates, with the parameters `t1`, `t2`, and `t3` as
 template variables [1]. The program will select an optimal kernel depending on the 
-size of the input matrices. Currently, this implementation is only optimized
-for the Nvidia V100 GPU.
-
-The implementation also accepts matrices of size (m * k) and (k * n), where m != k.
+size of the input matrices. This repository currently provides a set of optimal kernels for
+the Nvidia V100 GPU only.
 
 Instructions:
 -------------
 
 This implementation is designed for Unix platforms, and can be built using
-'make'. The usage of this program is: 
-'./multiply [-d] a.mtx b.mtx c.mtx',
+`make`. The usage of this program is: 
+`./multiply [-d] [-i] a.mtx b.mtx c.mtx`,
 where a.mtx and b.mtx are input matrices and c.mtx is an output matrix.
-Note that the optional parameter [-d] indicates that the matrices are 
-double precision.
+`-d` indicates that the matrices are double-precision, while `-i` indicates
+that 
+
 
 The format of the matrices is binary, with a structure as follows:
 
 ```C++
 template <typename FloatType>
-struct matrixFormat
-{
-    uint32 rows, cols;
+struct matrixFormat {
+    uint32_t rows, cols;
     FloatType values[rows * cols];
 };
 ```
@@ -46,19 +52,24 @@ The matrix is stored in column-major format.
 All multibyte values are little-endian.
 
 You may use the provided gen.cpp program to generate input
-matrices. The usage is ./gen [-d] -r ROW_COUNT -c COL_COUNT file,
-where -d signifies double precision.
+matrices. The usage is `./gen [-d] -r ROW_COUNT -c COL_COUNT file`,
+where `-d` signifies double precision.
 
+You may also use the provided print.cpp program to print matrices.
+The usage is `./print [-d] file`.
+
+To evaluate performance across a range of inputs, a Python3 script
+`test.py` is provided. The script can be invoked with 
+`python3 test.py`. The program requires that `../multiply` and
+`../gen` exist, and writes its output to CSV files.xs
 
 Notes:
 ------
 
-[1] Chen, Jieyang, Nan Xiong, Xin Liang, Dingwen Tao, Sihuan Li, Kaiming Ouyang, Kai Zhao, Nathan DeBardeleben, Qiang Guan, and Zizhong Chen. 
+[1] Cody Rivera, Jieyang Chen, Nan Xiong, Shuaiwen Leon Song, and Dingwen Tao. "ISM2: Optimizing Irregular-Shaped Matrix-Matrix Multiplication on GPUs." 
+2020. [arXiv:2002.03258](https://arxiv.org/abs/2002.03258) [cs.DC].
+
+[2] Jieyang Chen, Nan Xiong, Xin Liang, Dingwen Tao, Sihuan Li, Kaiming Ouyang, Kai Zhao, Nathan DeBardeleben, Qiang Guan, and Zizhong Chen. 
 "TSM2: optimizing tall-and-skinny matrix-matrix multiplication on GPUs." 
 In Proceedings of the ACM International Conference on Supercomputing (ICS), pp. 106-116. ACM, 2019. 
 [https://doi.org/10.1145/3330345.3330355](https://doi.org/10.1145/3330345.3330355)
-
-[2] In [1], the matrices are presented as being of size (n * n) and (n * k). We have relabeled our matrices to (m * m) and (m * n) in order to be more consistent with CUBLAS.
-
-
-

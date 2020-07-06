@@ -1,2 +1,6 @@
-test
-scratch
+*.o
+*.mtx
+*.csv
+multiply
+gen
+print

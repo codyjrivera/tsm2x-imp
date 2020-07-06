@@ -1,93 +1,50 @@
-# CUDA Makefile - Matmul
-# Written by Loko Kung, 2018
-# Edited by Tyler Port, 2018, Utilized by Cody Rivera
+CXX       := g++
+NVCC      := nvcc
+STD       := -std=c++11
+CCFLAGS   := $(STD) -O3 -g
+NVCCFLAGS := $(STD) -O3 -g
+SRC_DIR   := src
+OBJ_DIR   := obj
 
+LINKFLAGS := -Wno-deprecated-gpu-targets
 
-# Input Names
-CUDA_HEADERS = multiply.cuh kernels.cuh parameters.cuh
-CUDA_FILES = multiply.cu
-CPP_FILES = main.cpp
-# ------------------------------------------------------------------------------
+# Different Architecture Optimizations
+# You may need to modify this for your own GPU setup
+DEPLOY    := -arch=sm_50 \
+	-gencode=arch=compute_70,code=sm_70 \
+	-gencode=arch=compute_70,code=compute_70
+#	-gencode=arch=compute_50,code=sm_50 
+#	-gencode=arch=compute_52,code=sm_52 
+#	-gencode=arch=compute_60,code=sm_60 
+#	-gencode=arch=compute_61,code=sm_61 
 
-# CUDA Compiler and Flags
-CUDA_PATH = /usr/local/cuda
-CUDA_INC_PATH = $(CUDA_PATH)/include
-CUDA_BIN_PATH = $(CUDA_PATH)/bin
-CUDA_LIB_PATH = $(CUDA_PATH)/lib64
+MAIN      := $(SRC_DIR)/multiply.cu
+CUFILES2  := $(SRC_DIR)/kernels.cu
+CUFILES1  := $(filter-out $(MAIN), $(CUFILES2) $(wildcard $(SRC_DIR)/*.cu))
 
-NVCC = $(CUDA_BIN_PATH)/nvcc
+CUOBJS2   := $(CUFILES2:$(SRC_DIR)/%.cu=$(OBJ_DIR)/%.o)
+CUOBJS1   := $(CUFILES1:$(SRC_DIR)/%.cu=$(OBJ_DIR)/%.o)
 
-# OS-architecture specific flags
-ifeq ($(OS_SIZE),32)
-NVCC_FLAGS := -m32
-else
-NVCC_FLAGS := -m64
-endif
-NVCC_FLAGS += -g -Wno-deprecated-gpu-targets --std=c++11 \
-              --expt-relaxed-constexpr 
-NVCC_INCLUDE = 
-NVCC_LIBS = 
-NVCC_GENCODES = -arch=sm_50 \
-		-gencode arch=compute_50,code=sm_50 \
-		-gencode arch=compute_52,code=sm_52 \
-		-gencode arch=compute_60,code=sm_60 \
-		-gencode arch=compute_61,code=sm_61 \
-		-gencode arch=compute_70,code=sm_70 \
-		-gencode arch=compute_70,code=compute_70
+OBJS      := $(CUOBJS1) $(CUOBJS2)
 
-# CUDA Object Files
-CUDA_OBJ = cuda.o
+$(CUOBJS2): NVCCFLAGS += -rdc=true $(DEPLOY)
+$(CUOBJS1): NVCCFLAGS +=
 
-CUDA_OBJ_FILES = $(notdir $(addsuffix .o, $(CUDA_FILES)))
+all: ; @$(MAKE) multiply gen print -j
 
-# ------------------------------------------------------------------------------
+multiply: $(OBJS)
+	$(NVCC) $(NVCCFLAGS) -lcublas -lcudart $(DEPLOY) $(LINKFLAGS) $(MAIN) -rdc=true $^ -o $@
 
-# CUDA Linker and Flags
-CUDA_LINK_FLAGS = -dlink -Wno-deprecated-gpu-targets -g
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cu
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
-# ------------------------------------------------------------------------------
+gen: gen.cpp
+	$(CXX) $(CCFLAGS) $< -o $@
 
-# C++ Compiler and Flags
-GPP = g++
-FLAGS = -g -Wall -D_REENTRANT -std=c++0x -pthread
-INCLUDE = -I$(CUDA_INC_PATH)
-LIBS = -L$(CUDA_LIB_PATH) -lcublas -lcudart
-
-# ------------------------------------------------------------------------------
-# Make Rules (Lab 3 specific)
-# ------------------------------------------------------------------------------
-
-# C++ Object Files
-OBJ_FILES = $(notdir $(addsuffix .o, $(CPP_FILES)))
-
-# Top level rules
-all: multiply print gen
-
-multiply: $(OBJ_FILES) $(CUDA_OBJ) $(CUDA_OBJ_FILES)
-	$(GPP) $(FLAGS) -o multiply $(INCLUDE) $^ $(LIBS) 
-
-print: print.cpp.o
-	$(GPP) $(FLAGS) -o print $(INCLUDE) $^ $(LIBS)
-
-gen: gen.cpp.o
-	$(GPP) $(FLAGS) -o gen $(INCLUDE) $^ $(LIBS)
-
-
-# Compile C++ Source Files
-%.cpp.o: %.cpp
-	$(GPP) $(FLAGS) -c -o $@ $(INCLUDE) $< 
-
-# Compile CUDA Source Files
-%.cu.o: %.cu $(CUDA_HEADERS)
-	$(NVCC) $(NVCC_FLAGS) $(NVCC_GENCODES) -c -o $@ $(NVCC_INCLUDE) $<
-
-# Make linked device code
-$(CUDA_OBJ): $(CUDA_OBJ_FILES)
-	$(NVCC) $(CUDA_LINK_FLAGS) $(NVCC_GENCODES) -o $@ $(NVCC_INCLUDE) $^
-
-
-# Clean everything including temporary Emacs files
-clean:
-	rm -f multiply *.o *~ *.test.* print gen
+print: print.cpp
+	$(CXX) $(CCFLAGS) $< -o $@
 
 .PHONY: clean
+
+clean:
+	$(RM) $(OBJS) multiply gen print
