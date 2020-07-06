@@ -61,7 +61,7 @@ The usage is `./print [-d] file`.
 To evaluate performance across a range of inputs, a Python3 script
 `test.py` is provided. The script can be invoked with 
 `python3 test.py`. The program requires that `../multiply` and
-`../gen` exist, and writes its output to CSV files.xs
+`../gen` exist, and writes its output to CSV files.
 
 Notes:
 ------
