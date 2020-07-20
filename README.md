@@ -1,5 +1,5 @@
 
-ISM2: Irregular-Shape Matrix-Matrix Multiplication on the GPU
+TSM2X: High-Performance Tall-and-Skinny Matrix-MatrixMultiplication on GPUs
 =============================================================
 
 by
@@ -8,17 +8,17 @@ Jieyang Chen [chenj3@ornl.gov], and
 Dingwen Tao [dingwen.tao@wsu.edu]
 
 This repository contains an implementation of two irregular-shape matrix-matrix
-multiplication algorithms, `TSM2` and `ISM2`. `TSM2` is designed to efficiently
+multiplication algorithms, `TSM2R` and `TSM2L`. `TSM2R` is designed to efficiently
 multiply a large square (or near-square) matrix by a tall-and-skinny matrix, or
 more specifically, an (m * k) and (k * n) matrix-matrix multiplication where
-m and k are approximately equal, and n is much smaller than k. `ISM2` is designed
+m and k are approximately equal, and n is much smaller than k. `TSM2L` is designed
 to efficiently multiply a tall-and-skinny matrix by a small square matrix, or
 more specifically, an (m * k) and (k * n) matrix-matrix multiplication where 
 k is much smaller than m, and k and n are approximately equal.
 
-We propose `TSM2` and `ISM2` in our preprint,
-"ISM2: Optimizing Irregular-Shaped Matrix-Matrix Multiplication on GPUs." [1].
-Our work extends an ICS conference paper [2], which introduces `TSM2`, by expanding
+We propose `TSM2R` and `TSM2L` in our preprint,
+"TSM2X: High-Performance Tall-and-Skinny Matrix-MatrixMultiplication on GPUs." [1].
+Our work extends an ICS conference paper [2], which introduces `TSM2R`, by expanding
 its techniques for different matrix sizes as well as porting the algorithm to the Nvidia
 Tesla V100.
 
@@ -66,7 +66,7 @@ To evaluate performance across a range of inputs, a Python3 script
 Notes:
 ------
 
-[1] Cody Rivera, Jieyang Chen, Nan Xiong, Shuaiwen Leon Song, and Dingwen Tao. "ISM2: Optimizing Irregular-Shaped Matrix-Matrix Multiplication on GPUs." 
+[1] Cody Rivera, Jieyang Chen, Nan Xiong, Shuaiwen Leon Song, and Dingwen Tao. "TSM2X: High-Performance Tall-and-Skinny Matrix-MatrixMultiplication on GPUs." 
 2020. [arXiv:2002.03258](https://arxiv.org/abs/2002.03258) [cs.DC].
 
 [2] Jieyang Chen, Nan Xiong, Xin Liang, Dingwen Tao, Sihuan Li, Kaiming Ouyang, Kai Zhao, Nathan DeBardeleben, Qiang Guan, and Zizhong Chen. 
