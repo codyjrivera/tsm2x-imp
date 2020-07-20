@@ -35,7 +35,7 @@ This implementation is designed for Unix platforms, and can be built using
 `./multiply [-d] [-i] a.mtx b.mtx c.mtx`,
 where a.mtx and b.mtx are input matrices and c.mtx is an output matrix.
 `-d` indicates that the matrices are double-precision, while `-i` indicates
-that `ISM2` is to be used.
+that `TSM2R` (instead of `TSM2L`) is to be used.
 
 
 The format of the matrices is binary, with a structure as follows:
