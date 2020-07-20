@@ -1,5 +1,5 @@
 
-TSM2X: High-Performance Tall-and-Skinny Matrix-MatrixMultiplication on GPUs
+TSM2X: High-Performance Tall-and-Skinny Matrix-Matrix Multiplication on GPUs
 =============================================================
 
 by
