@@ -67,7 +67,7 @@ Notes:
 ------
 
 [1] Cody Rivera, Jieyang Chen, Nan Xiong, Shuaiwen Leon Song, and Dingwen Tao. "TSM2X: High-Performance Tall-and-Skinny Matrix-MatrixMultiplication on GPUs." 
-2020. [arXiv:2002.03258](https://arxiv.org/abs/2002.03258) [cs.DC].
+2020. [arXiv:2002.03258](https://arxiv.org/abs/2002.03258v4) [cs.DC].
 
 [2] Jieyang Chen, Nan Xiong, Xin Liang, Dingwen Tao, Sihuan Li, Kaiming Ouyang, Kai Zhao, Nathan DeBardeleben, Qiang Guan, and Zizhong Chen. 
 "TSM2: optimizing tall-and-skinny matrix-matrix multiplication on GPUs." 
